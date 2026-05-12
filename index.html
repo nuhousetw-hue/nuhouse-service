@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>新濠建設機構 | 客戶服務平台</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Loading Overlay ── -->
+  <div id="loading-overlay" class="hidden">
+    <div class="spinner"></div>
+    <p>處理中，請稍候…</p>
+  </div>
+
+  <!-- ── Toast ── -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- ── Navigation ── -->
+  <nav id="navbar" class="hidden">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <img src="logo.png" alt="新濠建設機構" class="nav-logo" onerror="this.style.display='none'" />
+        <span class="nav-subtitle">客戶服務平台</span>
+      </div>
+      <div class="nav-user">
+        <span id="nav-user-info"></span>
+        <button class="btn-logout" onclick="App.logout()">登出</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ════════════════════════════════════════
+       SCREEN 1 ── 登入
+  ════════════════════════════════════════ -->
+  <section id="screen-login" class="screen screen-login active">
+    <div class="login-hero">
+      <div class="login-card">
+        <div class="login-header">
+          <div class="login-logo-wrap">
+            <img src="logo.png" alt="新濠建設機構" class="login-logo" />
+          </div>
+          <p class="login-tagline">客戶服務平台</p>
+        </div>
+
+        <form id="login-form" class="login-form" onsubmit="App.login(event)">
+          <div class="form-group">
+            <label for="select-project">選擇建案</label>
+            <div class="select-wrap">
+              <select id="select-project" required>
+                <option value="">── 載入中 ──</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="input-id">身分證字號</label>
+            <input
+              type="text"
+              id="input-id"
+              placeholder="請輸入身分證字號（例：A123456789）"
+              maxlength="10"
+              autocomplete="off"
+              required
+            />
+            <span class="field-hint">大寫字母開頭，共 10 碼</span>
+          </div>
+
+          <button type="submit" class="btn-primary btn-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            登入
+          </button>
+        </form>
+
+        <p class="login-note">若有任何問題，請於 LINE@ 洽詢客服人員</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+       SCREEN 2 ── 主選單
+  ════════════════════════════════════════ -->
+  <section id="screen-dashboard" class="screen">
+    <div class="container">
+      <div class="welcome-banner">
+        <div>
+          <h2 id="dashboard-welcome">歡迎您回來</h2>
+          <p id="dashboard-info" class="text-muted"></p>
+        </div>
+      </div>
+
+      <h3 class="section-title">服務項目</h3>
+      <div class="menu-grid">
+
+        <button class="menu-card" onclick="App.goTo('drawings')">
+          <div class="menu-card-icon icon-blue">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <div class="menu-card-body">
+            <h4>客變圖資</h4>
+            <p>下載客變 CAD / PDF<br>上傳設計師圖面</p>
+          </div>
+          <svg class="menu-card-arrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+
+        <!-- 未來可增加更多服務卡片，例如：工程進度、繳款紀錄… -->
+        <div class="menu-card menu-card-disabled">
+          <div class="menu-card-icon icon-grey">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="menu-card-body">
+            <h4>工程進度</h4>
+            <p>即將推出</p>
+          </div>
+        </div>
+
+        <div class="menu-card menu-card-disabled">
+          <div class="menu-card-icon icon-grey">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="menu-card-body">
+            <h4>繳款紀錄</h4>
+            <p>即將推出</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+       SCREEN 3 ── 客變圖資
+  ════════════════════════════════════════ -->
+  <section id="screen-drawings" class="screen">
+    <div class="container">
+
+      <button class="btn-back" onclick="App.goTo('dashboard')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        返回主選單
+      </button>
+
+      <h2 class="page-title">客變圖資</h2>
+
+      <!-- ── 下載區 ── -->
+      <div class="card">
+        <div class="card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <h3>下載區</h3>
+        </div>
+        <p class="card-desc">以下為您的戶型客變圖資，請下載後交予設計師參考。</p>
+        <div id="download-list" class="file-list">
+          <p class="text-muted text-center">載入中…</p>
+        </div>
+      </div>
+
+      <!-- ── 上傳區 ── -->
+      <div class="card" style="margin-top:1.5rem">
+        <div class="card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <h3>上傳區</h3>
+        </div>
+        <p class="card-desc">請將您與設計師討論後的圖面上傳，支援所有格式（DWG、PDF、JPG 等）。</p>
+
+        <div
+          id="drop-zone"
+          class="drop-zone"
+          onclick="document.getElementById('file-input').click()"
+          ondragover="App.onDragOver(event)"
+          ondragleave="App.onDragLeave(event)"
+          ondrop="App.onDrop(event)"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <p>點擊或拖曳檔案至此處</p>
+          <span>支援所有檔案格式，單檔上限 20 MB</span>
+        </div>
+        <input type="file" id="file-input" class="hidden" multiple onchange="App.onFileSelect(event)" />
+
+        <!-- 上傳佇列 -->
+        <div id="upload-queue"></div>
+
+        <!-- 上傳紀錄 -->
+        <div class="upload-history-wrap">
+          <h4 class="upload-history-title">已上傳紀錄</h4>
+          <div id="upload-history">
+            <p class="text-muted text-center">載入中…</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

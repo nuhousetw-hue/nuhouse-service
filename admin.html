@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>新濠建設機構 | 後台管理</title>
+<style>
+:root{
+  --primary:#B01020;--primary-dk:#8C0D19;
+  --success:#1e8e3e;--danger:#c0392b;
+  --bg:#f0f2f5;--surface:#fff;--border:#e0e0e0;
+  --text:#3C3C3C;--text-muted:#888;
+  --shadow-sm:0 2px 8px rgba(0,0,0,.08);
+  --shadow-md:0 4px 20px rgba(0,0,0,.14);
+  --radius:12px;--radius-sm:8px;--nav-h:56px;--sidebar-w:245px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:15px;}
+body{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;}
+button{cursor:pointer;font:inherit;}
+input,select{font:inherit;}
+.hidden{display:none!important;}
+
+/* Loading */
+#loading-overlay{position:fixed;inset:0;background:rgba(140,13,25,.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;gap:1rem;}
+.spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:.7rem 1.4rem;border-radius:2rem;font-size:.88rem;z-index:8888;box-shadow:var(--shadow-md);max-width:90vw;text-align:center;}
+.toast.success{background:var(--success);}
+.toast.error{background:var(--danger);}
+
+/* Sidebar */
+#sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1.5px solid var(--border);z-index:500;display:none;flex-direction:column;overflow-y:auto;overflow-x:hidden;box-shadow:2px 0 12px rgba(0,0,0,.06);}
+#sidebar.visible{display:flex;}
+.sb-brand{padding:1rem .95rem .8rem;background:var(--primary);flex-shrink:0;}
+.sb-brand-name{font-size:.96rem;font-weight:700;color:#fff;letter-spacing:.04em;}
+.sb-brand-sub{font-size:.72rem;color:rgba(255,255,255,.72);margin-top:.1rem;}
+.sb-project{padding:.7rem .9rem;border-bottom:1.5px solid var(--border);flex-shrink:0;}
+.sb-project-label{display:block;font-size:.78rem;font-weight:700;color:var(--text-muted);letter-spacing:.05em;margin-bottom:.38rem;}
+.sb-project select{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:.42rem .55rem;font-size:.9rem;background:#fff;outline:none;cursor:pointer;}
+.sb-project select:focus{border-color:var(--primary);}
+.sb-nav{flex:1;padding:0;}
+.sb-group{border-top:1px solid var(--border);}
+.sb-group:first-child{border-top:none;}
+.sb-group-btn{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;padding:.82rem .9rem .65rem;font-size:1rem;font-weight:700;color:var(--text);cursor:pointer;text-align:left;}
+.sb-group-btn:hover{color:var(--primary);background:#fafafa;}
+.sb-group-arrow{font-size:.72rem;color:var(--text-muted);flex-shrink:0;margin-left:.4rem;}
+.sb-group-items.collapsed{display:none;}
+.sb-item{display:block;width:100%;text-align:left;background:none;border:none;border-left:3px solid transparent;padding:.62rem .85rem .62rem 1.25rem;font-size:.97rem;color:var(--text);cursor:pointer;transition:background .13s,color .13s,border-color .13s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-item:hover:not(.active){background:#f5f5f5;color:var(--primary);}
+.sb-item.active{background:#fff0f1;color:var(--primary);border-left-color:var(--primary);font-weight:700;}
+.sb-footer{padding:.75rem .9rem;border-top:1.5px solid var(--border);flex-shrink:0;}
+.sb-footer-user{font-size:.8rem;color:var(--text-muted);margin-bottom:.45rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.btn-sb-logout{width:100%;background:var(--primary);color:#fff;border:none;border-radius:6px;padding:.4rem .8rem;font-size:.83rem;font-weight:600;cursor:pointer;}
+.btn-sb-logout:hover{background:var(--primary-dk);}
+
+/* Mobile topbar */
+#mobile-topbar{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:var(--primary);z-index:600;display:none;align-items:center;justify-content:space-between;padding:0 1rem;box-shadow:0 2px 8px rgba(0,0,0,.18);}
+#mobile-topbar.visible{display:flex;}
+.mb-brand{font-size:.9rem;font-weight:700;color:#fff;letter-spacing:.03em;}
+.btn-hamburger{background:none;border:none;color:#fff;cursor:pointer;padding:.3rem;line-height:0;}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:490;}
+#sidebar-overlay.visible{display:block;}
+
+/* Customer search panels */
+.cust-search-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:1.25rem 1.5rem;margin-bottom:.85rem;}
+.cust-search-title{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:1rem;padding-bottom:.6rem;border-bottom:1.5px solid var(--border);}
+.cust-filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.65rem;margin-bottom:.85rem;}
+.cust-filter-field{display:flex;flex-direction:column;gap:.28rem;}
+.cust-filter-field label{font-size:.8rem;color:var(--text-muted);font-weight:600;}
+.cust-filter-field input{border:1.5px solid var(--border);border-radius:6px;padding:.44rem .7rem;font-size:.9rem;background:#fff;outline:none;}
+.cust-filter-field input:focus{border-color:var(--primary);}
+.cust-filter-btns{display:flex;gap:.5rem;align-items:center;}
+
+/* Login */
+#screen-login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);}
+.login-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-md);padding:2.5rem 2rem;width:100%;max-width:360px;}
+.login-title{text-align:center;margin-bottom:1.75rem;}
+.login-title h1{font-size:1.15rem;color:var(--primary);font-weight:700;}
+.login-title p{font-size:.82rem;color:var(--text-muted);margin-top:.25rem;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:.85rem;color:var(--text-muted);margin-bottom:.4rem;}
+.form-group input{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:.6rem .9rem;font-size:.95rem;outline:none;transition:border-color .2s;}
+.form-group input:focus{border-color:var(--primary);}
+.btn-login{width:100%;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:.75rem;font-size:1rem;font-weight:600;margin-top:.5rem;}
+.btn-login:hover{background:var(--primary-dk);}
+
+/* Main */
+#screen-main{margin-left:var(--sidebar-w);padding-top:1.25rem;padding-bottom:2rem;}
+.main-inner{max-width:1200px;margin:0 auto;padding:0 1.25rem;}
+
+/* Control bar */
+.control-bar{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:.85rem 1.25rem;margin-bottom:.85rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+.control-bar label{font-size:.85rem;color:var(--text-muted);white-space:nowrap;}
+.control-bar select{border:1.5px solid var(--border);border-radius:6px;padding:.4rem .7rem;font-size:.9rem;background:#fff;outline:none;min-width:140px;}
+.control-bar select:focus{border-color:var(--primary);}
+.current-project{font-weight:700;color:var(--primary);font-size:.95rem;}
+
+/* Tabs */
+.tabs{display:flex;gap:.5rem;margin-bottom:.85rem;}
+.tab-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:.45rem 1.2rem;font-size:.9rem;color:var(--text-muted);transition:all .18s;}
+.tab-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600;}
+.tab-btn:hover:not(.active){border-color:var(--primary);color:var(--primary);}
+
+/* Filter bar */
+.filter-bar{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:.85rem 1.25rem;margin-bottom:.85rem;display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;}
+.filter-bar label{font-size:.85rem;color:var(--text-muted);white-space:nowrap;}
+.filter-bar select,.filter-bar input[type=date]{border:1.5px solid var(--border);border-radius:6px;padding:.38rem .65rem;font-size:.88rem;background:#fff;outline:none;}
+.filter-bar select:focus,.filter-bar input[type=date]:focus{border-color:var(--primary);}
+.filter-sep{color:var(--text-muted);}
+.btn-query{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:.4rem 1.1rem;font-size:.88rem;white-space:nowrap;}
+.btn-query:hover{background:var(--primary-dk);}
+.btn-reset{background:#f5f5f5;color:var(--text-muted);border:1.5px solid var(--border);border-radius:6px;padding:.38rem .85rem;font-size:.88rem;}
+.btn-reset:hover{border-color:#aaa;}
+
+/* Result bar */
+.result-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;flex-wrap:wrap;gap:.5rem;}
+.result-count{font-size:.9rem;color:var(--text-muted);}
+.result-count strong{color:var(--text);font-size:1rem;}
+.btn-export{background:var(--success);color:#fff;border:none;border-radius:6px;padding:.4rem 1rem;font-size:.85rem;display:flex;align-items:center;gap:.4rem;}
+.btn-export:hover{background:#176d30;}
+
+/* Table */
+.table-wrap{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:auto;max-height:calc(100vh - 280px);}
+table{width:100%;border-collapse:collapse;font-size:.86rem;}
+thead th{background:var(--primary);color:#fff;padding:.7rem 1rem;text-align:left;white-space:nowrap;position:sticky;top:0;z-index:1;}
+tbody tr:nth-child(even){background:#fafafa;}
+tbody tr:hover{background:#fff3f3;}
+tbody td{padding:.62rem 1rem;border-bottom:1px solid #f0f0f0;white-space:nowrap;}
+.badge{display:inline-block;padding:.18rem .6rem;border-radius:1rem;font-size:.78rem;font-weight:600;}
+.badge-booked{background:#e8f5e9;color:#1a7a33;}
+.badge-cancelled{background:#fdecea;color:#c0392b;}
+.empty-row td{text-align:center;color:var(--text-muted);padding:3rem 1rem;font-size:.9rem;}
+
+/* Responsive */
+@media(max-width:768px){
+  .filter-bar{gap:.5rem;}
+  thead th{font-size:.78rem;padding:.55rem .65rem;}
+  tbody td{font-size:.78rem;padding:.5rem .65rem;}
+  .table-wrap{max-height:calc(100vh - 320px);}
+}
+
+/* 預約設定面板 */
+.settings-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:1.25rem 1.5rem;}
+.settings-intro{font-size:.85rem;color:var(--text-muted);margin-bottom:1.2rem;}
+.settings-row{display:grid;grid-template-columns:130px 1fr 1fr;align-items:center;gap:.75rem;padding:.75rem 0;border-bottom:1px solid var(--border);}
+.settings-row:last-of-type{border-bottom:none;}
+.settings-svc{font-weight:600;font-size:.9rem;}
+.settings-field{display:flex;flex-direction:column;gap:.25rem;}
+.settings-field label{font-size:.78rem;color:var(--text-muted);}
+.settings-field input[type=datetime-local]{border:1.5px solid var(--border);border-radius:6px;padding:.38rem .6rem;font-size:.85rem;background:#fff;outline:none;width:100%;}
+.settings-field input[type=datetime-local]:focus{border-color:var(--primary);}
+.settings-footer{margin-top:1.2rem;display:flex;justify-content:flex-end;}
+.btn-save-settings{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:.5rem 1.5rem;font-size:.92rem;font-weight:600;}
+.btn-save-settings:hover{background:var(--primary-dk);}
+.settings-empty{color:var(--text-muted);font-size:.9rem;text-align:center;padding:2rem 0;}
+@media(max-width:640px){
+  .settings-row{grid-template-columns:1fr;gap:.4rem;}
+  .settings-svc{font-size:.85rem;}
+}
+
+/* 行事曆 */
+.cal-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:1.25rem;}
+.cal-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem;margin-bottom:.85rem;}
+.cal-nav-wrap{display:flex;align-items:center;gap:.6rem;}
+.cal-nav-btn{background:#fff;border:1.5px solid var(--border);border-radius:6px;padding:.28rem .75rem;font-size:1rem;cursor:pointer;line-height:1;}
+.cal-nav-btn:hover{border-color:var(--primary);color:var(--primary);}
+.cal-title{font-size:1.05rem;font-weight:700;min-width:110px;text-align:center;}
+.cal-filters{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
+.cal-filters select{border:1.5px solid var(--border);border-radius:6px;padding:.35rem .6rem;font-size:.85rem;background:#fff;outline:none;}
+.cal-filters select:focus{border-color:var(--primary);}
+.btn-cal-refresh{background:var(--surface);border:1.5px solid var(--border);border-radius:6px;padding:.35rem .85rem;font-size:.85rem;cursor:pointer;}
+.btn-cal-refresh:hover{border-color:var(--primary);color:var(--primary);}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:.78rem;color:var(--text-muted);font-weight:600;padding:.3rem 0;border-bottom:1px solid var(--border);margin-bottom:.4rem;}
+.cal-weekdays span:first-child{color:#e53935;}
+.cal-weekdays span:last-child{color:#1565c0;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-cell{min-height:110px;border:1px solid var(--border);border-radius:6px;padding:.3rem .35rem;background:#fff;vertical-align:top;}
+.cal-cell.cal-empty{background:#f8f9fc;border-color:transparent;}
+.cal-cell.cal-today{border-color:var(--primary);border-width:2px;}
+.cal-day-num{font-size:.8rem;font-weight:600;color:var(--text-muted);margin-bottom:.2rem;}
+.cal-cell.cal-today .cal-day-num{color:var(--primary);}
+.cal-cell:first-child .cal-day-num,.cal-cell.cal-sun .cal-day-num{color:#e53935;}
+.cal-cell.cal-sat .cal-day-num{color:#1565c0;}
+.cal-item{font-size:.68rem;border-radius:3px;padding:.15rem .3rem;margin-bottom:.15rem;line-height:1.45;cursor:default;word-break:break-all;}
+.cal-item.svc-kv{background:#fff3e0;border-left:2px solid #e65100;}
+.cal-item.svc-yy{background:#e3f2fd;border-left:2px solid #1565c0;}
+.cal-item.svc-other{background:#f3e5f5;border-left:2px solid #7b1fa2;}
+.cal-item-row{display:flex;gap:.25rem;flex-wrap:wrap;align-items:center;}
+.cal-svc{font-weight:700;}
+.cal-time{color:#555;}
+.cal-unit{background:rgba(0,0,0,.07);border-radius:3px;padding:0 .25rem;}
+.cal-method{color:#777;font-style:italic;}
+.cal-more{font-size:.65rem;color:var(--text-muted);margin-top:.1rem;}
+.cal-empty-msg{text-align:center;color:var(--text-muted);padding:3rem 0;font-size:.9rem;}
+.btn-cal-export{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:.35rem .85rem;font-size:.85rem;cursor:pointer;}
+.btn-cal-export:hover{background:var(--primary-dk);}
+.cal-updated{font-size:.75rem;color:var(--text-muted);text-align:right;margin-bottom:.5rem;min-height:1.1em;}
+#cal-print-header{display:none;text-align:center;font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:.6rem;}
+@media(max-width:900px){
+  .cal-cell{min-height:80px;}
+  .cal-item{font-size:.62rem;}
+}
+@media(max-width:640px){
+  .cal-cell{min-height:56px;padding:.2rem;}
+  .cal-day-num{font-size:.72rem;}
+  .cal-item{font-size:.58rem;padding:.1rem .2rem;}
+}
+@media print{
+  body{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  #sidebar,#mobile-topbar,#sidebar-overlay,.control-bar,#filter-booking,#filter-upload,#filter-unbooked,
+  #result-bar,#table-wrap,#settings-panel,#profile-panel,#billing-panel,
+  .cal-nav-btn,.cal-filters,#cal-export-btn{display:none!important;}
+  #screen-main{padding-top:0!important;margin-left:0!important;}
+  .main-inner{padding:0!important;max-width:100%!important;}
+  #calendar-panel{display:block!important;}
+  .cal-card{box-shadow:none!important;padding:.5rem 0!important;}
+  #cal-print-header{display:block!important;}
+  .cal-nav-wrap{justify-content:center!important;}
+  .cal-updated{text-align:right;margin-bottom:.3rem;}
+  .cal-cell{min-height:80px!important;break-inside:avoid;}
+  .cal-grid{gap:2px!important;}
+  .cal-item.svc-kv,.cal-item.svc-yy,.cal-item.svc-other{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+
+/* ── 設定子分頁 ── */
+.stg-tabs{display:flex;gap:.3rem;margin-bottom:.85rem;border-bottom:2px solid var(--border);}
+.stg-tab-btn{background:none;border:none;padding:.55rem 1.1rem .45rem;font-size:.88rem;color:var(--text-muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;}
+.stg-tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:700;}
+.stg-tab-btn:hover:not(.active){color:var(--text);}
+
+/* ── 預約項目設定 ── */
+.svc-list-item{display:flex;align-items:center;justify-content:space-between;padding:.65rem 0;border-bottom:1px solid var(--border);}
+.svc-list-item:last-child{border-bottom:none;}
+.svc-list-name{font-weight:600;font-size:.92rem;}
+.svc-slot-count{font-size:.75rem;color:var(--text-muted);margin-left:.5rem;}
+.btn-svc-del{background:none;border:1px solid #ffcdd2;color:var(--danger);border-radius:4px;padding:.18rem .65rem;font-size:.78rem;cursor:pointer;}
+.btn-svc-del:hover{background:#fdecea;}
+.svc-add-row{display:flex;gap:.6rem;align-items:center;margin-top:.9rem;padding-top:.85rem;border-top:1px solid var(--border);}
+.svc-add-row input{flex:1;border:1.5px solid var(--border);border-radius:6px;padding:.42rem .7rem;font-size:.9rem;outline:none;}
+.svc-add-row input:focus{border-color:var(--primary);}
+.btn-svc-add{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:.42rem 1.1rem;font-size:.88rem;white-space:nowrap;}
+.btn-svc-add:hover{background:var(--primary-dk);}
+
+/* ── 時段行事曆 ── */
+.slotcal-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:.65rem;flex-wrap:wrap;gap:.5rem;}
+.slotcal-nav{display:flex;align-items:center;gap:.6rem;}
+.slotcal-nav-btn{background:#fff;border:1.5px solid var(--border);border-radius:6px;padding:.28rem .75rem;font-size:1rem;cursor:pointer;line-height:1;}
+.slotcal-nav-btn:hover{border-color:var(--primary);color:var(--primary);}
+.slotcal-title{font-size:1rem;font-weight:700;min-width:110px;text-align:center;}
+.slotcal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:.78rem;color:var(--text-muted);font-weight:600;padding:.3rem 0;border-bottom:1px solid var(--border);margin-bottom:.4rem;}
+.slotcal-weekdays span:first-child{color:#e53935;}
+.slotcal-weekdays span:last-child{color:#1565c0;}
+.slotcal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.slotcal-cell{min-height:76px;border:1.5px solid var(--border);border-radius:6px;padding:.28rem .32rem;background:#fff;cursor:pointer;transition:border-color .15s,background .15s;}
+.slotcal-cell:hover:not(.slotcal-empty){border-color:var(--primary);background:#fff8f8;}
+.slotcal-cell.slotcal-empty{background:#f8f9fc;border-color:transparent;cursor:default;}
+.slotcal-cell.slotcal-today{border-color:var(--primary);}
+.slotcal-cell.slotcal-selected{border-color:var(--primary);background:#fff3f3;border-width:2px;}
+.slotcal-day-num{font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:.2rem;}
+.slotcal-cell.slotcal-today .slotcal-day-num{color:var(--primary);}
+.slotcal-cell.slotcal-sun .slotcal-day-num{color:#e53935;}
+.slotcal-cell.slotcal-sat .slotcal-day-num{color:#1565c0;}
+.slotcal-chip{font-size:.62rem;background:#e8f5e9;color:#1a7a33;border-radius:3px;padding:.08rem .28rem;margin-bottom:.12rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
+.slotcal-chip.closed{background:#f5f5f5;color:#9e9e9e;}
+
+/* ── 日期詳細面板 ── */
+.slot-day-panel{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-top:.85rem;overflow:hidden;}
+.slot-day-hd{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;background:var(--primary);color:#fff;}
+.slot-day-title{font-weight:700;font-size:.95rem;}
+.btn-close-day{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:.2rem .7rem;font-size:.82rem;cursor:pointer;}
+.slot-day-body{padding:.85rem 1.25rem;}
+.slot-row{display:flex;align-items:center;flex-wrap:wrap;gap:.45rem;padding:.6rem 0;border-bottom:1px solid var(--border);}
+.slot-row:last-of-type{border-bottom:none;}
+.slot-svc-tag{background:#fce4ec;color:#c62828;border-radius:4px;padding:.12rem .5rem;font-size:.78rem;font-weight:700;white-space:nowrap;}
+.slot-time-val{font-weight:700;font-size:.88rem;white-space:nowrap;}
+.slot-cap-val{color:var(--text-muted);font-size:.82rem;white-space:nowrap;}
+.slot-booked-val{font-size:.78rem;padding:.1rem .4rem;border-radius:1rem;white-space:nowrap;}
+.slot-booked-val.has-booking{background:#fff3e0;color:#e65100;}
+.slot-booked-val.no-booking{background:#e8f5e9;color:#1a7a33;}
+.slot-open-badge{font-size:.72rem;padding:.1rem .4rem;border-radius:1rem;white-space:nowrap;}
+.slot-open-on{background:#e8f5e9;color:#1a7a33;}
+.slot-open-off{background:#f5f5f5;color:#9e9e9e;}
+.slot-allow-val{color:var(--text-muted);font-size:.78rem;flex:1;min-width:0;}
+.slot-row-btns{display:flex;gap:.3rem;margin-left:auto;}
+.btn-slot-edit2{background:#e3f0ff;color:#1565c0;border:1px solid #90caf9;border-radius:4px;padding:.18rem .55rem;font-size:.76rem;cursor:pointer;}
+.btn-slot-edit2:hover{background:#bbdefb;}
+.btn-slot-del2{background:#fdecea;color:var(--danger);border:1px solid #ffcdd2;border-radius:4px;padding:.18rem .55rem;font-size:.76rem;cursor:pointer;}
+.btn-slot-del2:hover{background:#ffcdd2;}
+.slot-no-data{text-align:center;color:var(--text-muted);padding:1.5rem 0;font-size:.88rem;}
+
+/* ── 時段新增/編輯表單 ── */
+.slot-form-card{background:#f8f9fc;border-radius:8px;padding:.9rem 1rem;margin-top:.75rem;border:1.5px solid var(--primary);}
+.slot-form-title{font-weight:700;font-size:.88rem;color:var(--primary);margin-bottom:.7rem;}
+.slot-form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:.6rem;margin-bottom:.65rem;}
+.slot-form-field{display:flex;flex-direction:column;gap:.2rem;}
+.slot-form-field label{font-size:.76rem;color:var(--text-muted);}
+.slot-form-field input,.slot-form-field select{border:1.5px solid var(--border);border-radius:6px;padding:.36rem .6rem;font-size:.86rem;background:#fff;outline:none;width:100%;}
+.slot-form-field input:focus,.slot-form-field select:focus{border-color:var(--primary);}
+.slot-form-check{display:flex;align-items:center;gap:.45rem;font-size:.86rem;margin-top:.35rem;}
+.slot-form-check input[type=checkbox]{width:15px;height:15px;accent-color:var(--primary);cursor:pointer;}
+.slot-form-btns{display:flex;gap:.5rem;margin-top:.65rem;}
+.btn-slot-save2{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:.4rem 1.2rem;font-size:.86rem;font-weight:700;cursor:pointer;}
+.btn-slot-save2:hover{background:var(--primary-dk);}
+.btn-slot-cancel2{background:#f5f5f5;color:var(--text-muted);border:1.5px solid var(--border);border-radius:6px;padding:.38rem .9rem;font-size:.86rem;cursor:pointer;}
+.btn-slot-cancel2:hover{border-color:#aaa;}
+.btn-add-slot-day{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:.4rem 1.1rem;font-size:.86rem;cursor:pointer;margin-top:.75rem;}
+.btn-add-slot-day:hover{background:var(--primary-dk);}
+/* ── 批次新增 ── */
+.batch-toggle-btn{background:#fff;border:1.5px solid var(--primary);color:var(--primary);border-radius:6px;padding:.4rem 1.1rem;font-size:.88rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.4rem;}
+.batch-toggle-btn:hover{background:#fff3f3;}
+.batch-form-wrap{background:#f0f4ff;border:1.5px solid #90b0e8;border-radius:10px;padding:1rem 1.1rem;margin-bottom:.9rem;}
+.batch-form-title{font-weight:700;font-size:.9rem;color:#1a3a7a;margin-bottom:.75rem;}
+.batch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.6rem;margin-bottom:.65rem;}
+.batch-field{display:flex;flex-direction:column;gap:.2rem;}
+.batch-field label{font-size:.76rem;color:#555;}
+.batch-field input,.batch-field select{border:1.5px solid #b0c4e8;border-radius:6px;padding:.36rem .6rem;font-size:.86rem;background:#fff;outline:none;width:100%;}
+.batch-field input:focus,.batch-field select:focus{border-color:var(--primary);}
+.batch-field.full{grid-column:1/-1;}
+.batch-dow-row{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.65rem;}
+.batch-dow-row label{font-size:.76rem;color:#555;margin-right:.25rem;}
+.dow-check{display:flex;align-items:center;gap:.2rem;font-size:.82rem;cursor:pointer;}
+.dow-check input{width:14px;height:14px;accent-color:var(--primary);cursor:pointer;}
+.dow-check.sun{color:#e53935;}
+.dow-check.sat{color:#1565c0;}
+.batch-btns{display:flex;gap:.5rem;margin-top:.5rem;align-items:center;}
+.btn-batch-submit{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:.42rem 1.4rem;font-size:.88rem;font-weight:700;cursor:pointer;}
+.btn-batch-submit:hover{background:var(--primary-dk);}
+.btn-batch-cancel{background:#fff;color:var(--text-muted);border:1.5px solid var(--border);border-radius:6px;padding:.4rem 1rem;font-size:.88rem;cursor:pointer;}
+.btn-batch-cancel:hover{border-color:#aaa;}
+.batch-preview{font-size:.8rem;color:#555;}
+@media(max-width:640px){
+  .slotcal-cell{min-height:52px;}
+  .slotcal-chip{display:none;}
+  .slot-row{gap:.3rem;}
+}
+
+/* Sidebar Responsive */
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%);transition:transform .25s ease;z-index:601;}
+  #sidebar.visible.open{transform:translateX(0);}
+  #screen-main{margin-left:0!important;padding-top:calc(var(--nav-h) + 1.25rem);}
+}
+@media(min-width:769px){
+  #mobile-topbar{display:none!important;}
+  #sidebar-overlay{display:none!important;}
+}
+
+/* 複選下拉 */
+.ms-wrap{position:relative;display:inline-block;}
+.ms-btn{border:1.5px solid var(--border);border-radius:6px;padding:.38rem .7rem;background:#fff;cursor:pointer;display:flex;align-items:center;gap:.5rem;min-width:110px;font-size:.88rem;color:var(--text);}
+.ms-btn:focus,.ms-btn:hover{border-color:var(--primary);}
+.ms-btn .ms-label{flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;}
+.ms-btn svg{flex-shrink:0;transition:transform .18s;}
+.ms-btn.open svg{transform:rotate(180deg);}
+.ms-dropdown{position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1.5px solid var(--border);border-radius:8px;box-shadow:var(--shadow-md);z-index:200;min-width:140px;padding:.3rem 0;max-height:220px;overflow-y:auto;}
+.ms-item{display:flex;align-items:center;gap:.6rem;padding:.38rem .85rem;cursor:pointer;font-size:.88rem;user-select:none;}
+.ms-item:hover{background:#f5f5f5;}
+.ms-item input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--primary);}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay" class="hidden">
+  <div class="spinner"></div>
+  <div>處理中，請稍候…</div>
+</div>
+<div id="toast" class="toast hidden"></div>
+
+<!-- Mobile Topbar -->
+<div id="mobile-topbar">
+  <span class="mb-brand">新濠建設機構 後台</span>
+  <button class="btn-hamburger" onclick="Admin.toggleSidebar()" aria-label="選單">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+</div>
+<div id="sidebar-overlay" onclick="Admin.toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-brand-name">新濠建設機構</div>
+    <div class="sb-brand-sub">後台管理系統</div>
+  </div>
+  <div class="sb-project">
+    <label class="sb-project-label">建案選擇</label>
+    <select id="select-project">
+      <option value="">— 請選擇建案 —</option>
+    </select>
+    <span id="current-project-name" class="hidden"></span>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-group">
+      <button class="sb-group-btn" onclick="Admin.toggleGroup('query')">
+        <span>查詢</span><span class="sb-group-arrow" id="sg-arrow-query">▼</span>
+      </button>
+      <div class="sb-group-items" id="sg-query">
+        <button class="sb-item active" id="tab-booking" onclick="Admin.switchTab('booking')">預約紀錄</button>
+        <button class="sb-item" id="tab-upload" onclick="Admin.switchTab('upload')">上傳紀錄</button>
+        <button class="sb-item" id="tab-unbooked" onclick="Admin.switchTab('unbooked')">未預約客戶</button>
+      </div>
+    </div>
+    <div class="sb-group">
+      <button class="sb-group-btn" onclick="Admin.toggleGroup('calendar')">
+        <span>行事曆</span><span class="sb-group-arrow" id="sg-arrow-calendar">▼</span>
+      </button>
+      <div class="sb-group-items" id="sg-calendar">
+        <button class="sb-item" id="tab-calendar" onclick="Admin.switchTab('calendar')">行事曆</button>
+      </div>
+    </div>
+    <div class="sb-group">
+      <button class="sb-group-btn" onclick="Admin.toggleGroup('customer')">
+        <span>客戶管理</span><span class="sb-group-arrow" id="sg-arrow-customer">▼</span>
+      </button>
+      <div class="sb-group-items" id="sg-customer">
+        <button class="sb-item" id="tab-profile" onclick="Admin.switchTab('profile')">基本資料</button>
+        <button class="sb-item" id="tab-billing" onclick="Admin.switchTab('billing')">帳務資訊</button>
+      </div>
+    </div>
+    <div class="sb-group" id="sb-group-settings">
+      <button class="sb-group-btn" onclick="Admin.toggleGroup('settings-sub')">
+        <span>設定</span><span class="sb-group-arrow" id="sg-arrow-settings-sub">▼</span>
+      </button>
+      <div class="sb-group-items" id="sg-settings-sub">
+        <button class="sb-item" id="tab-settings" onclick="Admin.switchTab('settings')">預約設定</button>
+      </div>
+    </div>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-footer-user" id="nav-admin-info"></div>
+    <button class="btn-sb-logout" onclick="Admin.logout()">登出</button>
+  </div>
+</aside>
+
+<!-- 登入畫面 -->
+<div id="screen-login">
+  <div class="login-card">
+    <div class="login-title">
+      <h1>新濠建設機構</h1>
+      <p>後台管理系統</p>
+    </div>
+    <form onsubmit="Admin.login(event)">
+      <div class="form-group">
+        <label>帳號</label>
+        <input type="text" id="input-username" placeholder="請輸入帳號" autocomplete="username"/>
+      </div>
+      <div class="form-group">
+        <label>密碼</label>
+        <input type="password" id="input-password" placeholder="請輸入密碼" autocomplete="current-password"/>
+      </div>
+      <button type="submit" class="btn-login">登入</button>
+    </form>
+  </div>
+</div>
+
+<!-- 主畫面 -->
+<div id="screen-main" class="hidden">
+  <div class="main-inner">
+
+    <!-- 預約篩選 -->
+    <div id="filter-booking" class="filter-bar">
+      <label>預約日期</label>
+      <input type="date" id="booking-date-from"/>
+      <span class="filter-sep">～</span>
+      <input type="date" id="booking-date-to"/>
+      <label style="margin-left:.5rem">狀態</label>
+      <select id="booking-status">
+        <option value="">全部</option>
+        <option value="已預約">已預約</option>
+        <option value="已取消">已取消</option>
+      </select>
+      <label style="margin-left:.5rem">服務項目</label>
+      <select id="booking-service">
+        <option value="">全部</option>
+      </select>
+      <button class="btn-query" onclick="Admin.query()">查詢</button>
+      <button class="btn-reset" onclick="Admin.resetFilters()">清除</button>
+    </div>
+
+    <!-- 上傳篩選 -->
+    <div id="filter-upload" class="filter-bar hidden">
+      <label>上傳日期</label>
+      <input type="date" id="upload-date-from"/>
+      <span class="filter-sep">～</span>
+      <input type="date" id="upload-date-to"/>
+      <button class="btn-query" onclick="Admin.query()">查詢</button>
+      <button class="btn-reset" onclick="Admin.resetFilters()">清除</button>
+    </div>
+
+    <!-- 未預約篩選 -->
+    <div id="filter-unbooked" class="filter-bar hidden">
+      <label>服務項目</label>
+      <select id="unbooked-service"><option value="">全部</option></select>
+      <label style="margin-left:.5rem">戶型</label>
+      <div class="ms-wrap" id="ms-unittype">
+        <button type="button" class="ms-btn" onclick="Admin.toggleMs('unittype')">
+          <span class="ms-label">全部</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="ms-dropdown hidden" id="ms-unittype-dropdown"></div>
+      </div>
+      <label style="margin-left:.5rem">樓層</label>
+      <div class="ms-wrap" id="ms-floor">
+        <button type="button" class="ms-btn" onclick="Admin.toggleMs('floor')">
+          <span class="ms-label">全部</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="ms-dropdown hidden" id="ms-floor-dropdown"></div>
+      </div>
+      <button class="btn-query" onclick="Admin.query()">查詢</button>
+      <button class="btn-reset" onclick="Admin.resetFilters()">清除</button>
+    </div>
+
+    <!-- 行事曆面板 -->
+    <div id="calendar-panel" class="hidden">
+      <div class="cal-card">
+        <div id="cal-print-header"></div>
+        <div class="cal-toolbar">
+          <div class="cal-nav-wrap">
+            <button class="cal-nav-btn" onclick="Admin.calNav(-1)">&#8249;</button>
+            <div class="cal-title" id="cal-title"></div>
+            <button class="cal-nav-btn" onclick="Admin.calNav(1)">&#8250;</button>
+          </div>
+          <div class="cal-filters">
+            <select id="cal-svc-filter"><option value="">全部服務</option></select>
+            <button class="btn-cal-refresh" onclick="Admin.loadCalendar(true)">重新整理</button>
+            <button class="btn-cal-export" id="cal-export-btn" onclick="Admin.exportCalPdf()">匯出 PDF</button>
+          </div>
+        </div>
+        <div class="cal-updated" id="cal-updated"></div>
+        <div class="cal-weekdays">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+    </div>
+
+    <!-- 預約設定面板 -->
+    <div id="settings-panel" class="hidden">
+      <!-- 子分頁 -->
+      <div class="stg-tabs">
+        <button class="stg-tab-btn active" id="stg-tab-open"  onclick="Admin.switchStgTab('open')">開放預約設定</button>
+        <button class="stg-tab-btn"        id="stg-tab-slots" onclick="Admin.switchStgTab('slots')">日期時間設定</button>
+      </div>
+
+      <!-- 開放預約設定 -->
+      <div id="stg-pane-open" class="settings-card">
+        <p class="settings-intro">設定各服務項目的可預約時間區間。未填寫表示不限制，客戶隨時可預約。</p>
+        <div id="settings-form"><p class="settings-empty">請先選擇建案</p></div>
+        <div class="settings-footer">
+          <button class="btn-save-settings" onclick="Admin.saveSettings()">儲存設定</button>
+        </div>
+      </div>
+
+      <!-- 日期時間設定 -->
+      <div id="stg-pane-slots" class="settings-card hidden">
+
+        <!-- 批次新增 -->
+        <div style="margin-bottom:.85rem">
+          <button class="batch-toggle-btn" onclick="Admin.toggleBatchForm()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            批次新增時段
+          </button>
+        </div>
+        <div id="batch-form-wrap" class="batch-form-wrap hidden">
+          <div class="batch-form-title">批次新增 — 一次建立多個日期的相同時段</div>
+          <div class="batch-grid">
+            <div class="batch-field">
+              <label>服務項目</label>
+              <select id="bf-svc"></select>
+            </div>
+            <div class="batch-field">
+              <label>時間</label>
+              <input type="time" id="bf-time"/>
+            </div>
+            <div class="batch-field">
+              <label>容量（人數）</label>
+              <input type="number" id="bf-capacity" min="1" max="99" value="1"/>
+            </div>
+            <div class="batch-field">
+              <label>起始日期</label>
+              <input type="date" id="bf-date-from"/>
+            </div>
+            <div class="batch-field">
+              <label>結束日期</label>
+              <input type="date" id="bf-date-to"/>
+            </div>
+            <div class="batch-field" style="justify-content:flex-end;padding-top:.3rem">
+              <label>&nbsp;</label>
+              <div class="slot-form-check">
+                <input type="checkbox" id="bf-open" checked/>
+                <span>立即開放</span>
+              </div>
+            </div>
+            <div class="batch-field full">
+              <label>開放戶別/樓層（空＝全部；多組用逗號分隔）</label>
+              <input type="text" id="bf-allowed" placeholder="例：B01-B08:17-30, B09:17-20, A01-A11:2-5"/>
+            </div>
+          </div>
+          <div class="batch-dow-row">
+            <label>只建立以下星期：</label>
+            <label class="dow-check sun"><input type="checkbox" id="bf-dow-0" checked/>日</label>
+            <label class="dow-check"><input type="checkbox" id="bf-dow-1" checked/>一</label>
+            <label class="dow-check"><input type="checkbox" id="bf-dow-2" checked/>二</label>
+            <label class="dow-check"><input type="checkbox" id="bf-dow-3" checked/>三</label>
+            <label class="dow-check"><input type="checkbox" id="bf-dow-4" checked/>四</label>
+            <label class="dow-check"><input type="checkbox" id="bf-dow-5" checked/>五</label>
+            <label class="dow-check sat"><input type="checkbox" id="bf-dow-6" checked/>六</label>
+          </div>
+          <div class="batch-btns">
+            <button class="btn-batch-submit" onclick="Admin.submitBatch()">建立時段</button>
+            <button class="btn-batch-cancel" onclick="Admin.toggleBatchForm()">取消</button>
+            <span class="batch-preview" id="batch-preview"></span>
+          </div>
+        </div>
+
+        <div class="slotcal-toolbar">
+          <div class="slotcal-nav">
+            <button class="slotcal-nav-btn" onclick="Admin.slotCalNav(-1)">&#8249;</button>
+            <div class="slotcal-title" id="slotcal-title"></div>
+            <button class="slotcal-nav-btn" onclick="Admin.slotCalNav(1)">&#8250;</button>
+          </div>
+          <button class="btn-cal-refresh" onclick="Admin.loadSlotCal(true)">重新整理</button>
+        </div>
+        <div class="slotcal-weekdays">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+        </div>
+        <div class="slotcal-grid" id="slotcal-grid"></div>
+        <!-- 日期詳細面板 -->
+        <div id="slot-day-panel" class="slot-day-panel hidden">
+          <div class="slot-day-hd">
+            <span class="slot-day-title" id="slot-day-title"></span>
+            <button class="btn-close-day" onclick="Admin.closeDayPanel()">✕ 關閉</button>
+          </div>
+          <div class="slot-day-body">
+            <div id="slot-day-list"></div>
+            <div id="slot-edit-form" class="slot-form-card hidden">
+              <div class="slot-form-title" id="slot-form-title">新增時段</div>
+              <div class="slot-form-grid">
+                <div class="slot-form-field">
+                  <label>服務項目</label>
+                  <select id="sf-svc"></select>
+                </div>
+                <div class="slot-form-field">
+                  <label>時間</label>
+                  <input type="time" id="sf-time"/>
+                </div>
+                <div class="slot-form-field">
+                  <label>容量（人數）</label>
+                  <input type="number" id="sf-capacity" min="1" max="99" value="1"/>
+                </div>
+                <div class="slot-form-field" style="grid-column:span 2">
+                  <label>開放戶別/樓層（空＝全部；多組用逗號分隔）</label>
+                  <input type="text" id="sf-allowed" placeholder="例：B01-B08:17-30, B09:17-20, A01-A11:2-5"/>
+                </div>
+                <div class="slot-form-field">
+                  <label>&nbsp;</label>
+                  <div class="slot-form-check">
+                    <input type="checkbox" id="sf-open" checked/>
+                    <span>立即開放</span>
+                  </div>
+                </div>
+              </div>
+              <div class="slot-form-btns">
+                <button class="btn-slot-save2"   onclick="Admin.saveSlotEdit()">儲存</button>
+                <button class="btn-slot-cancel2" onclick="Admin.hideSlotEditForm()">取消</button>
+              </div>
+            </div>
+            <button class="btn-add-slot-day" onclick="Admin.showSlotEditForm(null)">＋ 新增此日時段</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 結果列 -->
+    <div class="result-bar" id="result-bar">
+      <div class="result-count">共 <strong id="result-count">0</strong> 筆</div>
+      <button class="btn-export" onclick="Admin.exportCsv()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        匯出 CSV
+      </button>
+    </div>
+
+    <!-- 資料表格 -->
+    <div class="table-wrap" id="table-wrap">
+      <table>
+        <thead id="table-head"></thead>
+        <tbody id="table-body">
+          <tr class="empty-row"><td colspan="10">請先選擇建案，再按查詢</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 基本資料面板 -->
+    <div id="profile-panel" class="hidden">
+      <div class="cust-search-card">
+        <div class="cust-search-title">客戶基本資料 — 搜尋</div>
+        <div class="cust-filter-grid">
+          <div class="cust-filter-field">
+            <label>姓名</label>
+            <input type="text" id="pf-name" placeholder="請輸入姓名"/>
+          </div>
+          <div class="cust-filter-field">
+            <label>戶別</label>
+            <input type="text" id="pf-unit" placeholder="請輸入戶別"/>
+          </div>
+          <div class="cust-filter-field">
+            <label>樓層</label>
+            <input type="text" id="pf-floor" placeholder="請輸入樓層"/>
+          </div>
+          <div class="cust-filter-field">
+            <label>身份證字號</label>
+            <input type="text" id="pf-idcard" placeholder="請輸入身份證字號"/>
+          </div>
+        </div>
+        <div class="cust-filter-btns">
+          <button class="btn-query" onclick="Admin.queryProfile()">查詢</button>
+          <button class="btn-reset" onclick="Admin.resetProfileFilter()">清除</button>
+        </div>
+      </div>
+      <div class="result-bar hidden" id="pf-result-bar">
+        <div class="result-count">共 <strong id="pf-result-count">0</strong> 筆</div>
+      </div>
+      <div class="table-wrap hidden" id="pf-table-wrap">
+        <table>
+          <thead id="pf-table-head"></thead>
+          <tbody id="pf-table-body"><tr class="empty-row"><td colspan="8">請輸入條件後按查詢</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 帳務資訊面板 -->
+    <div id="billing-panel" class="hidden">
+      <div class="cust-search-card">
+        <div class="cust-search-title">帳務資訊 — 搜尋</div>
+        <div class="cust-filter-grid">
+          <div class="cust-filter-field">
+            <label>姓名</label>
+            <input type="text" id="bl-name" placeholder="請輸入姓名"/>
+          </div>
+          <div class="cust-filter-field">
+            <label>戶別</label>
+            <input type="text" id="bl-unit" placeholder="請輸入戶別"/>
+          </div>
+          <div class="cust-filter-field">
+            <label>身份證字號</label>
+            <input type="text" id="bl-idcard" placeholder="請輸入身份證字號"/>
+          </div>
+        </div>
+        <div class="cust-filter-btns">
+          <button class="btn-query" onclick="Admin.queryBilling()">查詢</button>
+          <button class="btn-reset" onclick="Admin.resetBillingFilter()">清除</button>
+        </div>
+      </div>
+      <div class="result-bar hidden" id="bl-result-bar">
+        <div class="result-count">共 <strong id="bl-result-count">0</strong> 筆</div>
+      </div>
+      <div class="table-wrap hidden" id="bl-table-wrap">
+        <table>
+          <thead id="bl-table-head"></thead>
+          <tbody id="bl-table-body"><tr class="empty-row"><td colspan="10">請輸入條件後按查詢</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbzRS-jAwIqe6KhxeuhCcQQXDP-zNZD1lhbf3h7MO_oWhluGfJotN58skku574BtgkuO/exec';
+
+var Admin = (function() {
+  var state = { username: null, role: 'user', tab: 'booking', data: [], projects: [], settingsServiceTypes: [] };
+  var SESSION_KEY = 'xh_admin_session';
+
+  function callServer(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function(resolve, reject) {
+      var done = false;
+      var timer = setTimeout(function() {
+        if (!done) { done = true; reject(new Error('連線逾時')); }
+      }, 30000);
+      fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ fn: fn, args: args }) })
+        .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function(d) { if (!done) { done = true; clearTimeout(timer); resolve(d); } })
+        .catch(function(e) { if (!done) { done = true; clearTimeout(timer); reject(e); } });
+    });
+  }
+
+  function init() {
+    try {
+      var saved = sessionStorage.getItem(SESSION_KEY);
+      if (saved) {
+        var s = JSON.parse(saved);
+        state.username = s.username;
+        state.role = s.role || 'user';
+        enterMain();
+        return;
+      }
+    } catch(e) {}
+    showScreen('login');
+  }
+
+  function login(e) {
+    e.preventDefault();
+    var username = document.getElementById('input-username').value.trim();
+    var password = document.getElementById('input-password').value;
+    if (!username || !password) { showToast('請輸入帳號及密碼', 'error'); return; }
+    showLoading(true);
+    callServer('serverAdminLogin', username, password)
+      .then(function(res) {
+        if (res.success) {
+          state.username = username;
+          state.role = res.role || 'user';
+          sessionStorage.setItem(SESSION_KEY, JSON.stringify({ username: username, role: state.role }));
+          enterMain();
+        } else {
+          showToast(res.message || '帳號或密碼錯誤', 'error');
+        }
+      })
+      .catch(function() { showToast('連線失敗，請稍後再試', 'error'); })
+      .then(function() { showLoading(false); });
+  }
+
+  function logout() {
+    sessionStorage.removeItem(SESSION_KEY);
+    state.username = null; state.role = 'user'; state.data = [];
+    var sb = document.getElementById('sidebar');
+    sb.classList.remove('visible'); sb.classList.remove('open');
+    document.getElementById('mobile-topbar').classList.remove('visible');
+    document.getElementById('sidebar-overlay').classList.remove('visible');
+    document.getElementById('input-username').value = '';
+    document.getElementById('input-password').value = '';
+    showScreen('login');
+  }
+
+  function toggleSidebar() {
+    var sb = document.getElementById('sidebar');
+    var overlay = document.getElementById('sidebar-overlay');
+    var isOpen = sb.classList.toggle('open');
+    overlay.classList.toggle('visible', isOpen);
+  }
+
+  function applyRolePermissions() {
+    var isAdmin = state.role === 'admin';
+    var settingsTab = document.getElementById('tab-settings');
+    var settingsGroup = document.getElementById('sb-group-settings');
+    if (isAdmin) {
+      settingsTab.classList.remove('hidden');
+      if (settingsGroup) settingsGroup.classList.remove('hidden');
+    } else {
+      settingsTab.classList.add('hidden');
+      if (settingsGroup) settingsGroup.classList.add('hidden');
+      if (state.tab === 'settings') switchTab('booking');
+    }
+  }
+
+  function enterMain() {
+    document.getElementById('nav-admin-info').textContent = state.username;
+    document.getElementById('sidebar').classList.add('visible');
+    document.getElementById('mobile-topbar').classList.add('visible');
+    showScreen('main');
+    applyRolePermissions();
+    loadProjects();
+  }
+
+  function loadProjects() {
+    callServer('serverGetProjects').then(function(projects) {
+      state.projects = projects;
+      var sel = document.getElementById('select-project');
+      sel.innerHTML = '<option value="">— 請選擇建案 —</option>';
+      projects.forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = p.code; opt.textContent = p.name;
+        sel.appendChild(opt);
+      });
+      sel.onchange = function() {
+        if (state.tab === 'settings') {
+          if (sel.value) loadSettingsPanel(sel.value);
+        } else if (state.tab === 'calendar') {
+          loadCalendar();
+        } else {
+          resetTable();
+        }
+        if (sel.value) loadUnitOptions(sel.value);
+      };
+    });
+  }
+
+  function switchTab(tab) {
+    state.tab = tab;
+    // Close mobile sidebar on navigation
+    var sb = document.getElementById('sidebar');
+    if (sb.classList.contains('open')) toggleSidebar();
+    var ALL_TABS = ['booking','upload','unbooked','settings','calendar','profile','billing'];
+    ALL_TABS.forEach(function(t) {
+      var el = document.getElementById('tab-' + t);
+      if (el) el.classList.toggle('active', tab === t);
+    });
+    var isSettings = tab === 'settings';
+    var isCalendar = tab === 'calendar';
+    var isProfile  = tab === 'profile';
+    var isBilling  = tab === 'billing';
+    var isTable    = !isSettings && !isCalendar && !isProfile && !isBilling;
+    document.getElementById('filter-booking').classList.toggle('hidden', tab !== 'booking');
+    document.getElementById('filter-upload').classList.toggle('hidden', tab !== 'upload');
+    document.getElementById('filter-unbooked').classList.toggle('hidden', tab !== 'unbooked');
+    document.getElementById('settings-panel').classList.toggle('hidden', !isSettings);
+    document.getElementById('calendar-panel').classList.toggle('hidden', !isCalendar);
+    document.getElementById('profile-panel').classList.toggle('hidden', !isProfile);
+    document.getElementById('billing-panel').classList.toggle('hidden', !isBilling);
+    document.getElementById('result-bar').classList.toggle('hidden', !isTable);
+    document.getElementById('table-wrap').classList.toggle('hidden', !isTable);
+    if (isSettings) {
+      var projectCode = document.getElementById('select-project').value;
+      if (projectCode) loadSettingsPanel(projectCode);
+    } else if (isCalendar) {
+      loadCalendar();
+    } else if (isTable) {
+      resetTable();
+    }
+  }
+
+  function resetFilters() {
+    if (state.tab === 'booking') {
+      document.getElementById('booking-date-from').value = '';
+      document.getElementById('booking-date-to').value = '';
+      document.getElementById('booking-status').value = '';
+      document.getElementById('booking-service').value = '';
+    } else if (state.tab === 'upload') {
+      document.getElementById('upload-date-from').value = '';
+      document.getElementById('upload-date-to').value = '';
+    } else if (state.tab === 'unbooked') {
+      document.getElementById('unbooked-service').value = '';
+      resetMs('unittype');
+      resetMs('floor');
+    }
+  }
+
+  function resetTable() {
+    state.data = [];
+    document.getElementById('result-count').textContent = '0';
+    document.getElementById('table-head').innerHTML = '';
+    document.getElementById('table-body').innerHTML = '<tr class="empty-row"><td colspan="10">請先選擇建案，再按查詢</td></tr>';
+  }
+
+  function query() {
+    var projectCode = document.getElementById('select-project').value;
+    if (!projectCode) { showToast('請先選擇建案', 'error'); return; }
+    showLoading(true);
+    var p;
+    if (state.tab === 'booking') {
+      var df = document.getElementById('booking-date-from').value.replace(/-/g, '/');
+      var dt = document.getElementById('booking-date-to').value.replace(/-/g, '/');
+      var st = document.getElementById('booking-status').value;
+      p = callServer('serverAdminGetBookings', projectCode, df, dt, st);
+    } else if (state.tab === 'upload') {
+      var df2 = document.getElementById('upload-date-from').value.replace(/-/g, '/');
+      var dt2 = document.getElementById('upload-date-to').value.replace(/-/g, '/');
+      p = callServer('serverAdminGetUploads', projectCode, df2, dt2);
+    } else {
+      var svc = document.getElementById('unbooked-service').value;
+      p = callServer('serverAdminGetUnbooked', projectCode, svc, msSelected.unittype, msSelected.floor);
+    }
+    p.then(function(data) {
+        console.log('GAS 回傳:', JSON.stringify(data));
+        if (!Array.isArray(data)) {
+          showToast('伺服器回傳錯誤：' + (data && data.message ? data.message : JSON.stringify(data)), 'error');
+          resetTable();
+          return;
+        }
+        state.data = data;
+        renderTable(data);
+        if (state.tab === 'booking') buildServiceFilter(data);
+      })
+      .catch(function(err) { showToast('查詢失敗：' + err.message, 'error'); })
+      .then(function() { showLoading(false); });
+  }
+
+  var msSelected = { unittype: [], floor: [] };
+
+  function toggleMs(id) {
+    var btn      = document.querySelector('#ms-' + id + ' .ms-btn');
+    var dropdown = document.getElementById('ms-' + id + '-dropdown');
+    var isOpen   = !dropdown.classList.contains('hidden');
+    closeAllMs();
+    if (!isOpen) { dropdown.classList.remove('hidden'); btn.classList.add('open'); }
+  }
+
+  function closeAllMs() {
+    ['unittype','floor'].forEach(function(id) {
+      var dropdown = document.getElementById('ms-' + id + '-dropdown');
+      var btn = document.querySelector('#ms-' + id + ' .ms-btn');
+      if (dropdown) dropdown.classList.add('hidden');
+      if (btn) btn.classList.remove('open');
+    });
+  }
+
+  function buildMsDropdown(id, values) {
+    msSelected[id] = [];
+    var container = document.getElementById('ms-' + id + '-dropdown');
+    container.innerHTML = '';
+    values.forEach(function(v) {
+      var item = document.createElement('label');
+      item.className = 'ms-item';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.value = v;
+      cb.addEventListener('change', function() { updateMsState(id); });
+      item.appendChild(cb);
+      item.appendChild(document.createTextNode(v));
+      container.appendChild(item);
+    });
+    updateMsLabel(id);
+  }
+
+  function updateMsState(id) {
+    var checkboxes = document.querySelectorAll('#ms-' + id + '-dropdown input[type=checkbox]');
+    msSelected[id] = [];
+    checkboxes.forEach(function(cb) { if (cb.checked) msSelected[id].push(cb.value); });
+    updateMsLabel(id);
+  }
+
+  function updateMsLabel(id) {
+    var label = document.querySelector('#ms-' + id + ' .ms-label');
+    label.textContent = msSelected[id].length ? msSelected[id].join(', ') : '全部';
+  }
+
+  function resetMs(id) {
+    msSelected[id] = [];
+    var checkboxes = document.querySelectorAll('#ms-' + id + '-dropdown input[type=checkbox]');
+    checkboxes.forEach(function(cb) { cb.checked = false; });
+    updateMsLabel(id);
+  }
+
+  function loadUnitOptions(projectCode) {
+    callServer('serverAdminGetUnitOptions', projectCode).then(function(opts) {
+      buildMsDropdown('unittype', opts.unitTypes || []);
+      buildMsDropdown('floor', opts.floors || []);
+      var svcSel = document.getElementById('unbooked-service');
+      svcSel.innerHTML = '<option value="">全部</option>';
+      (opts.serviceTypes || []).forEach(function(v) {
+        var o = document.createElement('option'); o.value = v; o.textContent = v; svcSel.appendChild(o);
+      });
+    });
+  }
+
+  function storedToInput(str) {
+    if (!str) return '';
+    return str.replace(/(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})/, '$1-$2-$3T$4:$5');
+  }
+  function inputToStored(str) {
+    if (!str) return '';
+    return str.replace(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/, '$1/$2/$3 $4:$5');
+  }
+
+  var _settingsCache = {};
+  function _renderSettingsForm(currentSettings) {
+    state.settingsServiceTypes = FIXED_SVC_TYPES;
+    var html = '';
+    FIXED_SVC_TYPES.forEach(function(svc) {
+      var cur = null;
+      currentSettings.forEach(function(s) { if (s.serviceType === svc) cur = s; });
+      var openVal  = cur ? storedToInput(cur.openTime)  : '';
+      var closeVal = cur ? storedToInput(cur.closeTime) : '';
+      var safeId   = svc.replace(/[^a-zA-Z0-9]/g, '_');
+      html += '<div class="settings-row">';
+      html += '<div class="settings-svc">' + esc(svc) + '</div>';
+      html += '<div class="settings-field"><label>開放預約時間</label><input type="datetime-local" id="st-open-' + safeId + '" value="' + openVal + '"/></div>';
+      html += '<div class="settings-field"><label>結束預約時間</label><input type="datetime-local" id="st-close-' + safeId + '" value="' + closeVal + '"/></div>';
+      html += '</div>';
+    });
+    document.getElementById('settings-form').innerHTML = html;
+  }
+  function loadSettings(projectCode, force) {
+    if (!force && _settingsCache[projectCode]) { _renderSettingsForm(_settingsCache[projectCode]); return; }
+    document.getElementById('settings-form').innerHTML = '<p class="settings-empty">載入中…</p>';
+    callServer('serverGetBookingSettings', projectCode)
+      .then(function(r) { _settingsCache[projectCode] = Array.isArray(r) ? r : []; _renderSettingsForm(_settingsCache[projectCode]); })
+      .catch(function() { document.getElementById('settings-form').innerHTML = '<p class="settings-empty">載入失敗，請稍後再試</p>'; });
+  }
+
+  function saveSettings() {
+    var projectCode = document.getElementById('select-project').value;
+    if (!projectCode) { showToast('請先選擇建案', 'error'); return; }
+    var settings = [];
+    state.settingsServiceTypes.forEach(function(svc) {
+      var safeId = svc.replace(/[^a-zA-Z0-9]/g, '_');
+      var openEl  = document.getElementById('st-open-'  + safeId);
+      var closeEl = document.getElementById('st-close-' + safeId);
+      settings.push({
+        serviceType: svc,
+        openTime:    openEl  ? inputToStored(openEl.value)  : '',
+        closeTime:   closeEl ? inputToStored(closeEl.value) : '',
+      });
+    });
+    showLoading(true);
+    callServer('serverSaveBookingSettings', projectCode, settings)
+      .then(function(res) {
+        if (res && res.success) {
+          var pc = document.getElementById('select-project').value;
+          delete _settingsCache[pc];
+          showToast('設定已儲存', 'success');
+        } else showToast('儲存失敗：' + ((res && res.message) || '未知錯誤'), 'error');
+      })
+      .catch(function() { showToast('儲存失敗，請稍後再試', 'error'); })
+      .then(function() { showLoading(false); });
+  }
+
+  function buildServiceFilter(data) {
+    var seen = {};
+    data.forEach(function(r) { if (r.serviceType) seen[r.serviceType] = 1; });
+    var sel = document.getElementById('booking-service');
+    var cur = sel.value;
+    sel.innerHTML = '<option value="">全部</option>';
+    Object.keys(seen).sort().forEach(function(s) {
+      var o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o);
+    });
+    if (cur) sel.value = cur;
+  }
+
+  function renderTable(data) {
+    document.getElementById('result-count').textContent = data.length;
+    var head = document.getElementById('table-head');
+    var body = document.getElementById('table-body');
+    head.innerHTML = ''; body.innerHTML = '';
+    if (!data.length) {
+      var cols = state.tab === 'booking' ? 10 : state.tab === 'unbooked' ? 6 : 6;
+      body.innerHTML = '<tr class="empty-row"><td colspan="' + cols + '">查無符合條件的資料</td></tr>';
+      return;
+    }
+    if (state.tab === 'booking') {
+      head.innerHTML = '<tr><th>#</th><th>建立時間</th><th>客戶姓名</th><th>戶號</th><th>身份證字號</th><th>服務項目</th><th>方式</th><th>預約日期</th><th>預約時段</th><th>狀態</th></tr>';
+      data.forEach(function(r, i) {
+        var tr = document.createElement('tr');
+        var cls = r.status === '已預約' ? 'badge-booked' : 'badge-cancelled';
+        tr.innerHTML =
+          '<td>' + (i+1) + '</td>' +
+          '<td>' + esc(r.createdAt) + '</td>' +
+          '<td>' + esc(r.name) + '</td>' +
+          '<td>' + esc(r.unit) + '</td>' +
+          '<td>' + esc(r.idCard) + '</td>' +
+          '<td>' + esc(r.serviceType) + '</td>' +
+          '<td>' + esc(r.method || '—') + '</td>' +
+          '<td>' + esc(r.date) + '</td>' +
+          '<td>' + esc(r.time) + '</td>' +
+          '<td><span class="badge ' + cls + '">' + esc(r.status) + '</span></td>';
+        body.appendChild(tr);
+      });
+    } else if (state.tab === 'upload') {
+      head.innerHTML = '<tr><th>#</th><th>上傳時間</th><th>客戶姓名</th><th>戶號</th><th>身份證字號</th><th>檔案名稱</th></tr>';
+      data.forEach(function(r, i) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + (i+1) + '</td>' +
+          '<td>' + esc(r.createdAt) + '</td>' +
+          '<td>' + esc(r.name) + '</td>' +
+          '<td>' + esc(r.unit) + '</td>' +
+          '<td>' + esc(r.idCard) + '</td>' +
+          '<td>' + esc(r.fileName) + '</td>';
+        body.appendChild(tr);
+      });
+    } else {
+      head.innerHTML = '<tr><th>#</th><th>客戶姓名</th><th>戶號</th><th>戶型</th><th>樓層</th><th>身份證字號</th></tr>';
+      data.forEach(function(r, i) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + (i+1) + '</td>' +
+          '<td>' + esc(r.name) + '</td>' +
+          '<td>' + esc(r.unit) + '</td>' +
+          '<td>' + esc(r.unitType) + '</td>' +
+          '<td>' + esc(r.floor) + '</td>' +
+          '<td>' + esc(r.idCard) + '</td>';
+        body.appendChild(tr);
+      });
+    }
+  }
+
+  function exportCsv() {
+    if (!state.data.length) { showToast('沒有資料可以匯出', 'error'); return; }
+    var projectCode = document.getElementById('select-project').value;
+    var projectName = '';
+    state.projects.forEach(function(p) { if (p.code === projectCode) projectName = p.name; });
+    var rows = [];
+    if (state.tab === 'booking') {
+      rows.push(['#', '建立時間', '客戶姓名', '戶號', '身份證字號', '服務項目', '方式', '預約日期', '預約時段', '狀態']);
+      state.data.forEach(function(r, i) {
+        rows.push([i+1, r.createdAt, r.name, r.unit, r.idCard, r.serviceType, r.method || '', r.date, r.time, r.status]);
+      });
+    } else if (state.tab === 'upload') {
+      rows.push(['#', '上傳時間', '客戶姓名', '戶號', '身份證字號', '檔案名稱']);
+      state.data.forEach(function(r, i) {
+        rows.push([i+1, r.createdAt, r.name, r.unit, r.idCard, r.fileName]);
+      });
+    } else {
+      rows.push(['#', '客戶姓名', '戶號', '戶型', '樓層', '身份證字號']);
+      state.data.forEach(function(r, i) {
+        rows.push([i+1, r.name, r.unit, r.unitType, r.floor, r.idCard]);
+      });
+    }
+    var csv = '﻿' + rows.map(function(row) {
+      return row.map(function(cell) {
+        var s = String(cell == null ? '' : cell);
+        if (s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0)
+          s = '"' + s.replace(/"/g, '""') + '"';
+        return s;
+      }).join(',');
+    }).join('\r\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var dateStr = new Date().toISOString().slice(0, 10);
+    var tabName = state.tab === 'booking' ? '預約紀錄' : state.tab === 'upload' ? '上傳紀錄' : '未預約客戶';
+    a.href = url;
+    a.download = projectName + '_' + tabName + '_' + dateStr + '.csv';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    showToast('已匯出 CSV', 'success');
+  }
+
+  function showScreen(name) {
+    document.getElementById('screen-login').style.display = name === 'login' ? 'flex' : 'none';
+    document.getElementById('screen-main').classList.toggle('hidden', name !== 'main');
+  }
+  function showLoading(v) { document.getElementById('loading-overlay').classList.toggle('hidden', !v); }
+  var _t;
+  function showToast(msg, type) {
+    var el = document.getElementById('toast');
+    el.textContent = msg; el.className = 'toast ' + (type||''); el.classList.remove('hidden');
+    clearTimeout(_t); _t = setTimeout(function() { el.classList.add('hidden'); }, 3500);
+  }
+  var esc = function(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  };
+
+  // ── 預約設定（開放設定 + 日期時間設定）──────────────────────
+  var FIXED_SVC_TYPES = ['客變服務', '對保服務', '驗屋服務'];
+
+  var slotStg = {
+    subTab: 'open',
+    year: new Date().getFullYear(), month: new Date().getMonth(),
+    slots: [], svcTypes: FIXED_SVC_TYPES, selectedDate: null, editRowIdx: null,
+    loadedProject: null   // 追蹤已載入的建案，避免重複呼叫 API
+  };
+
+  function loadSettingsPanel(projectCode) {
+    // 切換建案時清除前端快取
+    if (slotStg.loadedProject !== projectCode) slotStg.loadedProject = null;
+    if (slotStg.subTab === 'open')  loadSettings(projectCode);
+    if (slotStg.subTab === 'slots') loadSlotCal();
+  }
+
+  function switchStgTab(tab) {
+    slotStg.subTab = tab;
+    ['open','slots'].forEach(function(t) {
+      document.getElementById('stg-tab-' + t).classList.toggle('active', tab === t);
+      document.getElementById('stg-pane-' + t).classList.toggle('hidden', tab !== t);
+    });
+    var pc = document.getElementById('select-project').value;
+    if (!pc) return;
+    if (tab === 'open')  loadSettings(pc);
+    if (tab === 'slots') loadSlotCal();
+  }
+
+  // ── 預約項目設定 ──
+  function loadSvcTypes(projectCode) {
+    var el = document.getElementById('svc-type-list');
+    el.innerHTML = '<p class="settings-empty">載入中…</p>';
+    Promise.all([
+      callServer('serverGetBookingSettings', projectCode),
+      callServer('serverAdminGetSlots', projectCode)
+    ]).then(function(res) {
+      var settings = Array.isArray(res[0]) ? res[0] : [];
+      var slots    = Array.isArray(res[1]) ? res[1] : [];
+      slotStg.svcTypes = settings.map(function(s) { return s.serviceType; });
+      slotStg.slots = slots;
+      if (!settings.length) { el.innerHTML = '<p class="settings-empty">尚無服務項目，請在下方新增</p>'; return; }
+      var html = '';
+      settings.forEach(function(s) {
+        var cnt = slots.filter(function(sl) { return sl.serviceType === s.serviceType; }).length;
+        html += '<div class="svc-list-item">';
+        html += '<span class="svc-list-name">' + esc(s.serviceType) + '<span class="svc-slot-count">（' + cnt + ' 個時段）</span></span>';
+        html += '<button class="btn-svc-del" onclick="Admin.deleteSvcType(\'' + esc(s.serviceType) + '\',' + cnt + ')">刪除</button>';
+        html += '</div>';
+      });
+      el.innerHTML = html;
+    }).catch(function() { el.innerHTML = '<p class="settings-empty">載入失敗</p>'; });
+  }
+
+  function addSvcType() {
+    var pc   = document.getElementById('select-project').value;
+    var name = document.getElementById('new-svc-name').value.trim();
+    if (!pc)   { showToast('請先選擇建案', 'error'); return; }
+    if (!name) { showToast('請輸入服務項目名稱', 'error'); return; }
+    showLoading(true);
+    callServer('serverAdminAddServiceType', pc, name)
+      .then(function(r) {
+        if (r && r.success) {
+          document.getElementById('new-svc-name').value = '';
+          showToast('已新增：' + name, 'success');
+          loadSvcTypes(pc);
+        } else { showToast((r && r.message) || '新增失敗', 'error'); showLoading(false); }
+      })
+      .catch(function() { showToast('新增失敗', 'error'); showLoading(false); });
+  }
+
+  function deleteSvcType(name, slotCount) {
+    var msg = slotCount > 0
+      ? '「' + name + '」目前有 ' + slotCount + ' 個時段設定。\n刪除服務項目後，這些時段設定及相關開放預約設定將一併移除，已預約客戶的紀錄不受影響。\n\n確定刪除？'
+      : '確定刪除服務項目「' + name + '」？';
+    if (!confirm(msg)) return;
+    var pc = document.getElementById('select-project').value;
+    showLoading(true);
+    callServer('serverAdminDeleteServiceType', pc, name)
+      .then(function(r) {
+        if (r && r.success) { showToast('已刪除：' + name, 'success'); loadSvcTypes(pc); }
+        else { showToast((r && r.message) || '刪除失敗', 'error'); showLoading(false); }
+      })
+      .catch(function() { showToast('刪除失敗', 'error'); showLoading(false); });
+  }
+
+  // ── 日期時間設定（時段行事曆）──
+  function loadSlotCal(force) {
+    var pc = document.getElementById('select-project').value;
+    var y = slotStg.year, m = slotStg.month;
+    var mNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    document.getElementById('slotcal-title').textContent = y + '年 ' + mNames[m];
+    if (!pc) { document.getElementById('slotcal-grid').innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted)">請先選擇建案</div>'; return; }
+    // 同一建案已有資料則直接渲染，不重新呼叫 API
+    if (!force && slotStg.loadedProject === pc && slotStg.slots.length >= 0) {
+      renderSlotCal(slotStg.slots);
+      if (slotStg.selectedDate) renderDayPanel(slotStg.selectedDate, slotStg.slots);
+      return;
+    }
+    showLoading(true);
+    callServer('serverAdminGetSlots', pc)
+    .then(function(data) {
+      slotStg.slots         = Array.isArray(data) ? data : [];
+      slotStg.loadedProject = pc;
+      renderSlotCal(slotStg.slots);
+      if (slotStg.selectedDate) renderDayPanel(slotStg.selectedDate, slotStg.slots);
+    })
+    .catch(function() { showToast('載入時段失敗', 'error'); })
+    .then(function() { showLoading(false); });
+  }
+
+  function slotCalNav(dir) {
+    slotStg.month += dir;
+    if (slotStg.month > 11) { slotStg.month = 0; slotStg.year++; }
+    if (slotStg.month < 0)  { slotStg.month = 11; slotStg.year--; }
+    // 月份切換只重新渲染，資料已在前端
+    renderSlotCal(slotStg.slots);
+    if (slotStg.selectedDate) {
+      var ds = slotStg.selectedDate;
+      var inMonth = ds.startsWith(slotStg.year + '/' + _pad2(slotStg.month + 1));
+      if (!inMonth) { slotStg.selectedDate = null; document.getElementById('slot-day-panel').classList.add('hidden'); }
+      else renderDayPanel(ds, slotStg.slots);
+    }
+  }
+
+  function renderSlotCal(slots) {
+    var y = slotStg.year, m = slotStg.month;
+    var mNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    document.getElementById('slotcal-title').textContent = y + '年 ' + mNames[m];
+    // group by date
+    var byDate = {};
+    slots.forEach(function(s) {
+      if (!byDate[s.date]) byDate[s.date] = [];
+      byDate[s.date].push(s);
+    });
+    var firstDow    = new Date(y, m, 1).getDay();
+    var daysInMonth = new Date(y, m + 1, 0).getDate();
+    var today = new Date();
+    var todayStr = today.getFullYear() + '/' + _pad2(today.getMonth()+1) + '/' + _pad2(today.getDate());
+    var html = '';
+    for (var i = 0; i < firstDow; i++) html += '<div class="slotcal-cell slotcal-empty"></div>';
+    for (var d = 1; d <= daysInMonth; d++) {
+      var ds  = y + '/' + _pad2(m+1) + '/' + _pad2(d);
+      var dow = new Date(y, m, d).getDay();
+      var cls = 'slotcal-cell';
+      if (ds === todayStr)          cls += ' slotcal-today';
+      if (ds === slotStg.selectedDate) cls += ' slotcal-selected';
+      if (dow === 0) cls += ' slotcal-sun';
+      if (dow === 6) cls += ' slotcal-sat';
+      html += '<div class="' + cls + '" onclick="Admin.selectSlotDate(\'' + ds + '\')">';
+      html += '<div class="slotcal-day-num">' + d + '</div>';
+      (byDate[ds] || []).slice(0, 4).forEach(function(s) {
+        var chipCls = 'slotcal-chip' + (s.open ? '' : ' closed');
+        html += '<span class="' + chipCls + '">' + esc(s.time) + ' ' + esc(s.serviceType) + '</span>';
+      });
+      if ((byDate[ds] || []).length > 4) html += '<span class="slotcal-chip" style="color:#888">+' + ((byDate[ds].length - 4)) + '…</span>';
+      html += '</div>';
+    }
+    document.getElementById('slotcal-grid').innerHTML = html;
+  }
+
+  function selectSlotDate(dateStr) {
+    slotStg.selectedDate = dateStr;
+    renderSlotCal(slotStg.slots);
+    renderDayPanel(dateStr, slotStg.slots);
+    document.getElementById('slot-day-panel').classList.remove('hidden');
+    hideSlotEditForm();
+    setTimeout(function() { document.getElementById('slot-day-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 80);
+  }
+
+  function closeDayPanel() {
+    slotStg.selectedDate = null;
+    document.getElementById('slot-day-panel').classList.add('hidden');
+    renderSlotCal(slotStg.slots);
+  }
+
+  function renderDayPanel(dateStr, allSlots) {
+    document.getElementById('slot-day-title').textContent = dateStr + ' 時段設定';
+    var daySlots = allSlots.filter(function(s) { return s.date === dateStr; })
+                           .sort(function(a, b) { return (a.time||'').localeCompare(b.time||''); });
+    var html = '';
+    if (!daySlots.length) {
+      html = '<div class="slot-no-data">此日尚無時段，點下方「新增」建立</div>';
+    } else {
+      daySlots.forEach(function(s) {
+        var bookedCls = s.bookedCount > 0 ? 'has-booking' : 'no-booking';
+        var bookedLbl = s.bookedCount > 0 ? '已預約 ' + s.bookedCount + '/' + s.capacity : '0/' + s.capacity;
+        var openBadge = s.open ? '<span class="slot-open-badge slot-open-on">開放</span>' : '<span class="slot-open-badge slot-open-off">關閉</span>';
+        var allowLbl  = s.allowedStr ? s.allowedStr : '全部戶別';
+        html += '<div class="slot-row">';
+        html += '<span class="slot-svc-tag">'  + esc(s.serviceType) + '</span>';
+        html += '<span class="slot-time-val">'  + esc(s.time)        + '</span>';
+        html += '<span class="slot-cap-val">容量 ' + s.capacity + '</span>';
+        html += '<span class="slot-booked-val ' + bookedCls + '">' + bookedLbl + '</span>';
+        html += openBadge;
+        html += '<span class="slot-allow-val">' + esc(allowLbl) + '</span>';
+        html += '<div class="slot-row-btns">';
+        html += '<button class="btn-slot-edit2" onclick="Admin.showSlotEditForm(' + s.rowIdx + ')">編輯</button>';
+        html += '<button class="btn-slot-del2"  onclick="Admin.deleteSlotItem(' + s.rowIdx + ',' + s.bookedCount + ',\'' + esc(s.serviceType) + '\',\'' + s.time + '\')">刪除</button>';
+        html += '</div></div>';
+      });
+    }
+    document.getElementById('slot-day-list').innerHTML = html;
+  }
+
+  function showSlotEditForm(rowIdx) {
+    slotStg.editRowIdx = rowIdx || null;
+    var form = document.getElementById('slot-edit-form');
+    form.classList.remove('hidden');
+    var sel = document.getElementById('sf-svc');
+    sel.innerHTML = '';
+    slotStg.svcTypes.forEach(function(t) {
+      var o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);
+    });
+    if (rowIdx) {
+      document.getElementById('slot-form-title').textContent = '編輯時段';
+      var s = slotStg.slots.find(function(x) { return x.rowIdx === rowIdx; });
+      if (s) {
+        sel.value = s.serviceType;
+        document.getElementById('sf-time').value     = s.time;
+        document.getElementById('sf-capacity').value = s.capacity;
+        document.getElementById('sf-open').checked   = s.open;
+        document.getElementById('sf-allowed').value  = s.allowedStr || '';
+      }
+    } else {
+      document.getElementById('slot-form-title').textContent = '新增時段';
+      document.getElementById('sf-time').value     = '';
+      document.getElementById('sf-capacity').value = '1';
+      document.getElementById('sf-open').checked   = true;
+      document.getElementById('sf-allowed').value  = '';
+    }
+    form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function hideSlotEditForm() {
+    document.getElementById('slot-edit-form').classList.add('hidden');
+    slotStg.editRowIdx = null;
+  }
+
+  function saveSlotEdit() {
+    var pc = document.getElementById('select-project').value;
+    if (!pc) { showToast('請先選擇建案', 'error'); return; }
+    var svc     = document.getElementById('sf-svc').value;
+    var time    = document.getElementById('sf-time').value;
+    var cap     = parseInt(document.getElementById('sf-capacity').value) || 1;
+    var open    = document.getElementById('sf-open').checked;
+    var allowed = document.getElementById('sf-allowed').value.trim();
+    if (!svc || !time) { showToast('請填寫服務項目及時間', 'error'); return; }
+    var slot = { serviceType: svc, date: slotStg.selectedDate, time: time, capacity: cap, open: open, allowedStr: allowed };
+    if (slotStg.editRowIdx) slot.rowIdx = slotStg.editRowIdx;
+    showLoading(true);
+    callServer('serverAdminSaveSlot', pc, slot)
+      .then(function(r) {
+        if (r && r.success) {
+          showToast(slotStg.editRowIdx ? '已更新' : '已新增', 'success');
+          hideSlotEditForm();
+          slotStg.loadedProject = null;
+          loadSlotCal(true);
+        } else { showToast((r && r.message) || '儲存失敗', 'error'); showLoading(false); }
+      })
+      .catch(function() { showToast('儲存失敗', 'error'); showLoading(false); });
+  }
+
+  function toggleBatchForm() {
+    var wrap = document.getElementById('batch-form-wrap');
+    var isHidden = wrap.classList.toggle('hidden');
+    if (!isHidden) {
+      // 開啟時初始化服務項目下拉
+      var sel = document.getElementById('bf-svc');
+      sel.innerHTML = '';
+      FIXED_SVC_TYPES.forEach(function(t) {
+        var o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);
+      });
+      document.getElementById('batch-preview').textContent = '';
+    }
+  }
+
+  function _batchPreviewCount() {
+    var from = document.getElementById('bf-date-from').value;
+    var to   = document.getElementById('bf-date-to').value;
+    if (!from || !to) { document.getElementById('batch-preview').textContent = ''; return; }
+    var dows = [];
+    for (var i = 0; i < 7; i++) { if (document.getElementById('bf-dow-' + i).checked) dows.push(i); }
+    var count = 0, cur = new Date(from), end = new Date(to);
+    while (cur <= end) { if (dows.indexOf(cur.getDay()) >= 0) count++; cur.setDate(cur.getDate() + 1); }
+    document.getElementById('batch-preview').textContent = count > 0 ? '將建立 ' + count + ' 筆時段' : '日期範圍內無符合條件的日期';
+  }
+
+  // 讓日期/星期改變時即時更新預覽
+  (function() {
+    function _hookBatch() {
+      ['bf-date-from','bf-date-to'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('change', _batchPreviewCount);
+      });
+      for (var i = 0; i < 7; i++) {
+        (function(ii) {
+          var cb = document.getElementById('bf-dow-' + ii);
+          if (cb) cb.addEventListener('change', _batchPreviewCount);
+        })(i);
+      }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _hookBatch);
+    else _hookBatch();
+  })();
+
+  function submitBatch() {
+    var pc      = document.getElementById('select-project').value;
+    var svc     = document.getElementById('bf-svc').value;
+    var time    = document.getElementById('bf-time').value;
+    var cap     = parseInt(document.getElementById('bf-capacity').value) || 1;
+    var open    = document.getElementById('bf-open').checked;
+    var allowed = document.getElementById('bf-allowed').value.trim();
+    var from    = document.getElementById('bf-date-from').value;
+    var to      = document.getElementById('bf-date-to').value;
+    if (!pc)   { showToast('請先選擇建案', 'error'); return; }
+    if (!svc || !time) { showToast('請填寫服務項目及時間', 'error'); return; }
+    if (!from || !to)  { showToast('請填寫日期範圍', 'error'); return; }
+    if (from > to)     { showToast('起始日期不能晚於結束日期', 'error'); return; }
+    var dows = [];
+    for (var i = 0; i < 7; i++) { if (document.getElementById('bf-dow-' + i).checked) dows.push(i); }
+    if (!dows.length) { showToast('請至少選擇一個星期', 'error'); return; }
+    // 產生所有符合條件的日期
+    var slots = [], cur = new Date(from + 'T00:00:00'), end = new Date(to + 'T00:00:00');
+    while (cur <= end) {
+      if (dows.indexOf(cur.getDay()) >= 0) {
+        var ds = cur.getFullYear() + '/' + _pad2(cur.getMonth()+1) + '/' + _pad2(cur.getDate());
+        slots.push({ serviceType: svc, date: ds, time: time, capacity: cap, open: open, allowedStr: allowed });
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+    if (!slots.length) { showToast('日期範圍內無符合條件的日期', 'error'); return; }
+    if (!confirm('將新增 ' + slots.length + ' 筆「' + svc + ' ' + time + '」時段，確定？')) return;
+    showLoading(true);
+    callServer('serverAdminBatchAddSlots', pc, slots)
+      .then(function(r) {
+        if (r && r.success) {
+          showToast('已新增 ' + r.count + ' 筆時段', 'success');
+          document.getElementById('batch-form-wrap').classList.add('hidden');
+          slotStg.loadedProject = null;
+          loadSlotCal(true);
+        } else { showToast((r && r.message) || '建立失敗', 'error'); showLoading(false); }
+      })
+      .catch(function() { showToast('建立失敗', 'error'); showLoading(false); });
+  }
+
+  function deleteSlotItem(rowIdx, bookedCount, svcType, time) {
+    var msg;
+    if (bookedCount > 0) {
+      msg = '⚠️ 注意：此時段（' + svcType + ' ' + time + '）目前已有 ' + bookedCount + ' 筆預約資料。\n\n任何刪除或異動，若該時段已有預約之客戶也將消失，此操作無法復原。\n\n確定要刪除嗎？';
+    } else {
+      msg = '確定刪除「' + svcType + ' ' + time + '」時段？此操作無法復原。';
+    }
+    if (!confirm(msg)) return;
+    var pc = document.getElementById('select-project').value;
+    showLoading(true);
+    callServer('serverAdminDeleteSlot', pc, rowIdx)
+      .then(function(r) {
+        if (r && r.success) { showToast('已刪除', 'success'); slotStg.loadedProject = null; loadSlotCal(true); }
+        else { showToast((r && r.message) || '刪除失敗', 'error'); showLoading(false); }
+      })
+      .catch(function() { showToast('刪除失敗', 'error'); showLoading(false); });
+  }
+  // ────────────────────────────────────────────────────────────
+
+  // ── 行事曆 ──────────────────────────────────────────────────
+  var calState = {
+    year: new Date().getFullYear(),
+    month: new Date().getMonth(),
+    data: [],
+    svcFilter: '',
+    loadedProject: null, loadedYear: null, loadedMonth: null
+  };
+
+  function _pad2(n) { return String(n).padStart(2, '0'); }
+
+  function loadCalendar(force) {
+    var projectCode = document.getElementById('select-project').value;
+    if (!projectCode) {
+      document.getElementById('cal-title').textContent = calState.year + '年 ' + (calState.month+1) + '月';
+      document.getElementById('cal-grid').innerHTML = '<div class="cal-empty-msg">請先選擇建案</div>';
+      return;
+    }
+    var y = calState.year, m = calState.month;
+    // 同建案同月份已有資料則直接渲染
+    if (!force && calState.loadedProject === projectCode && calState.loadedYear === y && calState.loadedMonth === m) {
+      buildCalSvcFilter(calState.data);
+      renderCalendar(calState.data);
+      return;
+    }
+    var firstDay = y + '/' + _pad2(m+1) + '/01';
+    var lastDate = new Date(y, m+1, 0).getDate();
+    var lastDay  = y + '/' + _pad2(m+1) + '/' + _pad2(lastDate);
+    showLoading(true);
+    callServer('serverAdminGetBookings', projectCode, firstDay, lastDay, '已預約')
+      .then(function(data) {
+        calState.data = Array.isArray(data) ? data : [];
+        calState.loadedProject = projectCode;
+        calState.loadedYear    = y;
+        calState.loadedMonth   = m;
+        buildCalSvcFilter(calState.data);
+        renderCalendar(calState.data);
+        var now = new Date();
+        var upd = now.getFullYear() + '/' + _pad2(now.getMonth()+1) + '/' + _pad2(now.getDate()) +
+                  ' ' + _pad2(now.getHours()) + ':' + _pad2(now.getMinutes()) + ':' + _pad2(now.getSeconds());
+        var el = document.getElementById('cal-updated');
+        if (el) el.textContent = '最後更新：' + upd;
+      })
+      .catch(function() {
+        document.getElementById('cal-grid').innerHTML = '<div class="cal-empty-msg">載入失敗，請重新整理</div>';
+      })
+      .then(function() { showLoading(false); });
+  }
+
+  function exportCalPdf() {
+    var sel = document.getElementById('select-project');
+    var projectName = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].text : '';
+    var monthTitle  = document.getElementById('cal-title').textContent;
+    var ph = document.getElementById('cal-print-header');
+    if (ph) ph.textContent = projectName + '　' + monthTitle + '　預約行事曆';
+    window.print();
+  }
+
+  function calNav(dir) {
+    calState.month += dir;
+    if (calState.month > 11) { calState.month = 0; calState.year++; }
+    if (calState.month < 0)  { calState.month = 11; calState.year--; }
+    loadCalendar(); // 月份不同會自動重新取資料
+  }
+
+  function buildCalSvcFilter(data) {
+    var seen = {};
+    data.forEach(function(r) { if (r.serviceType) seen[r.serviceType] = 1; });
+    var sel = document.getElementById('cal-svc-filter');
+    var cur = sel.value;
+    sel.innerHTML = '<option value="">全部服務</option>';
+    Object.keys(seen).sort().forEach(function(s) {
+      var o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o);
+    });
+    if (cur && seen[cur]) sel.value = cur;
+    calState.svcFilter = sel.value;
+    sel.onchange = function() { calState.svcFilter = sel.value; renderCalendar(calState.data); };
+  }
+
+  function renderCalendar(data) {
+    var y = calState.year, m = calState.month;
+    var monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    document.getElementById('cal-title').textContent = y + '年 ' + monthNames[m];
+
+    var filtered = calState.svcFilter
+      ? data.filter(function(r) { return r.serviceType === calState.svcFilter; })
+      : data;
+
+    var byDate = {};
+    filtered.forEach(function(r) {
+      if (!byDate[r.date]) byDate[r.date] = [];
+      byDate[r.date].push(r);
+    });
+
+    var firstDow   = new Date(y, m, 1).getDay();
+    var daysInMonth = new Date(y, m+1, 0).getDate();
+    var today = new Date();
+    var todayStr = today.getFullYear() + '/' + _pad2(today.getMonth()+1) + '/' + _pad2(today.getDate());
+
+    var html = '';
+    for (var i = 0; i < firstDow; i++) html += '<div class="cal-cell cal-empty"></div>';
+
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dateStr = y + '/' + _pad2(m+1) + '/' + _pad2(d);
+      var dow = new Date(y, m, d).getDay();
+      var cls = 'cal-cell';
+      if (dateStr === todayStr) cls += ' cal-today';
+      if (dow === 0) cls += ' cal-sun';
+      if (dow === 6) cls += ' cal-sat';
+
+      html += '<div class="' + cls + '"><div class="cal-day-num">' + d + '</div>';
+
+      var items = (byDate[dateStr] || []).slice().sort(function(a,b) {
+        return (a.time||'').localeCompare(b.time||'');
+      });
+      var maxShow = 3, more = items.length - maxShow;
+
+      items.slice(0, maxShow).forEach(function(r) {
+        var svcCls = (r.serviceType||'').indexOf('客變') >= 0 ? 'svc-kv'
+                   : (r.serviceType||'').indexOf('驗屋') >= 0 ? 'svc-yy'
+                   : 'svc-other';
+        html += '<div class="cal-item ' + svcCls + '">';
+        html += '<div class="cal-item-row"><span class="cal-svc">' + esc(r.serviceType||'') + '</span>';
+        html += '<span class="cal-time">&nbsp;' + esc(r.time||'') + '</span></div>';
+        html += '<div class="cal-item-row"><span class="cal-unit">' + esc(r.unit||'') + '</span>';
+        html += '<span class="cal-time">&nbsp;' + esc(r.name||'') + '</span>';
+        if (r.method) html += '<span class="cal-method">&nbsp;' + esc(r.method) + '</span>';
+        html += '</div></div>';
+      });
+      if (more > 0) html += '<div class="cal-more">還有 ' + more + ' 筆…</div>';
+      html += '</div>';
+    }
+    document.getElementById('cal-grid').innerHTML = html;
+  }
+  // ────────────────────────────────────────────────────────────
+
+  // ── 側邊欄群組收合 ──────────────────────────────────────────
+  function toggleGroup(groupId) {
+    var items = document.getElementById('sg-' + groupId);
+    var arrow = document.getElementById('sg-arrow-' + groupId);
+    if (!items) return;
+    var collapsed = items.classList.toggle('collapsed');
+    if (arrow) arrow.textContent = collapsed ? '▶' : '▼';
+  }
+
+  // ── 基本資料搜尋 ──────────────────────────────────────────
+  function queryProfile() {
+    var projectCode = document.getElementById('select-project').value;
+    if (!projectCode) { showToast('請先選擇建案', 'error'); return; }
+    var filters = {
+      name:   document.getElementById('pf-name').value.trim(),
+      unit:   document.getElementById('pf-unit').value.trim(),
+      floor:  document.getElementById('pf-floor').value.trim(),
+      idCard: document.getElementById('pf-idcard').value.trim()
+    };
+    showLoading(true);
+    callServer('serverAdminGetCustomers', projectCode, filters)
+      .then(function(data) {
+        if (!Array.isArray(data)) {
+          showToast((data && data.message) || '功能尚未開放，請聯絡系統管理員', 'error');
+          showLoading(false); return;
+        }
+        renderProfileTable(data);
+      })
+      .catch(function(err) { showToast('查詢失敗：' + err.message, 'error'); })
+      .then(function() { showLoading(false); });
+  }
+
+  function resetProfileFilter() {
+    ['pf-name','pf-unit','pf-floor','pf-idcard'].forEach(function(id) {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('pf-result-bar').classList.add('hidden');
+    document.getElementById('pf-table-wrap').classList.add('hidden');
+  }
+
+  function renderProfileTable(data) {
+    document.getElementById('pf-result-count').textContent = data.length;
+    document.getElementById('pf-result-bar').classList.remove('hidden');
+    document.getElementById('pf-table-wrap').classList.remove('hidden');
+    var head = document.getElementById('pf-table-head');
+    var body = document.getElementById('pf-table-body');
+    head.innerHTML = '<tr><th>#</th><th>姓名</th><th>戶別</th><th>樓層</th><th>客變狀態</th><th>對保狀態</th><th>驗屋狀態</th><th>備註事項</th></tr>';
+    body.innerHTML = '';
+    if (!data.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="8">查無符合條件的資料</td></tr>'; return;
+    }
+    data.forEach(function(r, i) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + (i+1) + '</td>' +
+        '<td>' + esc(r.name||'—') + '</td>' +
+        '<td>' + esc(r.unit||'—') + '</td>' +
+        '<td>' + esc(r.floor||'—') + '</td>' +
+        '<td>' + esc(r.kvStatus||'—') + '</td>' +
+        '<td>' + esc(r.dbStatus||'—') + '</td>' +
+        '<td>' + esc(r.yhStatus||'—') + '</td>' +
+        '<td>' + esc(r.note||'—') + '</td>';
+      body.appendChild(tr);
+    });
+  }
+
+  // ── 帳務資訊搜尋 ──────────────────────────────────────────
+  function queryBilling() {
+    var projectCode = document.getElementById('select-project').value;
+    if (!projectCode) { showToast('請先選擇建案', 'error'); return; }
+    var filters = {
+      name:   document.getElementById('bl-name').value.trim(),
+      unit:   document.getElementById('bl-unit').value.trim(),
+      idCard: document.getElementById('bl-idcard').value.trim()
+    };
+    showLoading(true);
+    callServer('serverAdminGetBilling', projectCode, filters)
+      .then(function(data) {
+        if (!Array.isArray(data)) {
+          showToast((data && data.message) || '功能尚未開放，請聯絡系統管理員', 'error');
+          showLoading(false); return;
+        }
+        renderBillingTable(data);
+      })
+      .catch(function(err) { showToast('查詢失敗：' + err.message, 'error'); })
+      .then(function() { showLoading(false); });
+  }
+
+  function resetBillingFilter() {
+    ['bl-name','bl-unit','bl-idcard'].forEach(function(id) {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('bl-result-bar').classList.add('hidden');
+    document.getElementById('bl-table-wrap').classList.add('hidden');
+  }
+
+  function renderBillingTable(data) {
+    document.getElementById('bl-result-count').textContent = data.length;
+    document.getElementById('bl-result-bar').classList.remove('hidden');
+    document.getElementById('bl-table-wrap').classList.remove('hidden');
+    var head = document.getElementById('bl-table-head');
+    var body = document.getElementById('bl-table-body');
+    head.innerHTML = '<tr><th>#</th><th>姓名</th><th>戶別</th><th>期數</th><th>應繳金額</th><th>繳款期限</th><th>繳款日期</th><th>本期收到金額</th><th>發票號碼</th><th>發票日期</th></tr>';
+    body.innerHTML = '';
+    if (!data.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="10">查無符合條件的資料</td></tr>'; return;
+    }
+    data.forEach(function(r, i) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + (i+1) + '</td>' +
+        '<td>' + esc(r.name||'—') + '</td>' +
+        '<td>' + esc(r.unit||'—') + '</td>' +
+        '<td>' + esc(r.period||'—') + '</td>' +
+        '<td>' + esc(r.amount||'—') + '</td>' +
+        '<td>' + esc(r.dueDate||'—') + '</td>' +
+        '<td>' + esc(r.paidDate||'—') + '</td>' +
+        '<td>' + esc(r.received||'—') + '</td>' +
+        '<td>' + esc(r.invoiceNo||'—') + '</td>' +
+        '<td>' + esc(r.invoiceDate||'—') + '</td>';
+      body.appendChild(tr);
+    });
+  }
+  // ────────────────────────────────────────────────────────────
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.ms-wrap')) closeAllMs();
+  });
+
+  return { init, login, logout, switchTab, query, resetFilters, exportCsv, toggleMs,
+           saveSettings, switchStgTab,
+           loadSlotCal, slotCalNav, selectSlotDate, closeDayPanel,
+           showSlotEditForm, hideSlotEditForm, saveSlotEdit, deleteSlotItem,
+           toggleBatchForm, submitBatch,
+           loadCalendar, calNav, exportCalPdf,
+           toggleSidebar, toggleGroup,
+           queryProfile, resetProfileFilter,
+           queryBilling, resetBillingFilter };
+})();
+
+document.addEventListener('DOMContentLoaded', Admin.init);
+</script>
+</body>
+</html>

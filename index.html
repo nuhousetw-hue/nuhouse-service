@@ -1,197 +1,1635 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>新濠建設機構 | 客戶服務平台</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>新濠建設機構 | 客戶服務平台</title>
+<script>
+(function(){
+  var sw = Math.min(screen.width, screen.availWidth || screen.width);
+  var ua = navigator.userAgent || '';
+  if (/iPhone|Android.*Mobile|Mobile.*Android|Windows Phone/i.test(ua) || sw <= 640)
+    document.documentElement.classList.add('is-mobile');
+  if (sw <= 380)
+    document.documentElement.classList.add('is-xs');
+})();
+</script>
+<style>
+:root{
+  --primary:#B01020;--primary-lt:#C81828;--primary-dk:#8C0D19;
+  --charcoal:#3C3C3C;--success:#1e8e3e;--danger:#c0392b;
+  --bg:#f5f5f5;--surface:#fff;--border:#e0e0e0;
+  --text:#3C3C3C;--text-muted:#888;
+  --shadow-sm:0 2px 8px rgba(0,0,0,.08);
+  --shadow-md:0 4px 20px rgba(0,0,0,.14);
+  --radius:12px;--radius-sm:8px;--nav-h:64px;--tab-h:54px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden;}
+img{max-width:100%;display:block;}
+button{cursor:pointer;font:inherit;}
+input,select{font:inherit;}
+a{color:var(--primary);text-decoration:none;}
+.hidden{display:none!important;}
+.text-muted{color:var(--text-muted);font-size:.9rem;}
+.text-center{text-align:center;}
+
+#loading-overlay{position:fixed;inset:0;background:rgba(140,13,25,.75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;gap:1rem;}
+.spinner{width:48px;height:48px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:.75rem 1.5rem;border-radius:2rem;font-size:.9rem;z-index:8888;box-shadow:var(--shadow-md);max-width:90vw;text-align:center;}
+.toast.success{background:var(--success);}
+.toast.error{background:var(--danger);}
+
+#navbar{position:fixed;top:0;left:0;right:0;background:var(--primary);height:var(--nav-h);z-index:1000;box-shadow:0 2px 12px rgba(0,0,0,.2);}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:100%;padding:0 1.5rem;}
+.nav-brand{display:flex;align-items:center;gap:.75rem;}
+.nav-logo{height:52px;width:auto;filter:brightness(0) invert(1);}
+.nav-subtitle{font-size:.82rem;color:rgba(255,255,255,.75);letter-spacing:.1em;}
+.nav-user{display:flex;align-items:center;gap:1rem;}
+#nav-user-info{color:rgba(255,255,255,.85);font-size:.88rem;}
+.btn-logout{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);padding:.35rem .9rem;border-radius:6px;font-size:.85rem;}
+.btn-logout:hover{background:rgba(255,255,255,.22);}
+
+.screen{display:none;}
+#screen-select-unit{padding-top:var(--nav-h);}
+#screen-dashboard,#screen-drawings,#screen-booking,#screen-docs,#screen-progress,#screen-profile,#screen-billing{padding-top:calc(var(--nav-h) + var(--tab-h));}
+.container{max-width:900px;margin:0 auto;padding:2rem 1.25rem;}
+.btn-back{display:inline-flex;align-items:center;gap:.4rem;background:none;border:none;color:var(--primary);font-size:.9rem;padding:0;margin-bottom:1.25rem;}
+.btn-back:hover{text-decoration:underline;}
+.page-title{font-size:1.5rem;font-weight:700;color:var(--primary);margin-bottom:1.5rem;}
+
+.screen-login{min-height:100vh;background:linear-gradient(150deg,var(--primary-dk) 0%,var(--primary) 50%,#6B0010 100%);}
+.login-hero{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem 1.25rem;}
+.login-card{background:var(--surface);border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.35);width:100%;max-width:440px;padding:2.5rem 2rem;}
+.login-header{text-align:center;margin-bottom:2rem;}
+.login-logo-wrap{width:240px;margin:0 auto .75rem;}
+.login-logo{width:100%;height:auto;}
+.login-tagline{font-size:1.25rem;font-weight:700;color:var(--charcoal);letter-spacing:.08em;margin-top:.4rem;}
+.login-form{display:flex;flex-direction:column;gap:1.25rem;}
+.form-group{display:flex;flex-direction:column;gap:.5rem;}
+.form-group label{font-size:.88rem;font-weight:600;color:var(--primary);}
+.select-wrap{position:relative;}
+.select-wrap::after{content:"▾";position:absolute;right:1rem;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;}
+select,input[type="text"]{width:100%;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:.95rem;outline:none;transition:border-color .2s,box-shadow .2s;}
+select{appearance:none;padding-right:2.5rem;}
+select:focus,input[type="text"]:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(176,16,32,.15);}
+.field-hint{font-size:.78rem;color:var(--text-muted);}
+.btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;background:var(--primary);color:#fff;border:none;padding:.85rem 1.5rem;border-radius:var(--radius-sm);font-size:.95rem;font-weight:600;transition:background .2s,transform .1s;box-shadow:0 4px 14px rgba(176,16,32,.3);}
+.btn-primary:hover{background:var(--primary-lt);}
+.btn-primary:active{transform:scale(.98);}
+.btn-full{width:100%;}
+.login-note{margin-top:1.5rem;text-align:center;font-size:.85rem;color:var(--text-muted);padding-top:1.25rem;border-top:1px solid var(--border);}
+
+.unit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;}
+.unit-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:2rem 1rem;text-align:center;cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .15s;box-shadow:var(--shadow-sm);}
+.unit-card:hover{border-color:var(--primary);box-shadow:0 6px 24px rgba(176,16,32,.15);transform:translateY(-3px);}
+.unit-card-icon{width:56px;height:56px;background:rgba(176,16,32,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;color:var(--primary);}
+.unit-card h4{font-size:1.1rem;font-weight:700;color:var(--text);}
+
+.welcome-banner{background:linear-gradient(120deg,var(--primary-dk),var(--primary));color:#fff;border-radius:var(--radius);padding:1.75rem 2rem;margin-bottom:2rem;box-shadow:var(--shadow-md);}
+.welcome-banner h2{font-size:1.4rem;font-weight:700;}
+.welcome-banner .sub{color:rgba(255,255,255,.75);margin-top:.3rem;font-size:.9rem;}
+.section-title{font-size:1rem;font-weight:600;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:1rem;}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;}
+.menu-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;display:flex;align-items:center;gap:1.25rem;text-align:left;transition:border-color .2s,box-shadow .2s,transform .15s;box-shadow:var(--shadow-sm);width:100%;}
+.menu-card:not(.menu-card-disabled):hover{border-color:var(--primary);box-shadow:0 6px 24px rgba(176,16,32,.15);transform:translateY(-2px);}
+.menu-card-disabled{opacity:.5;cursor:default;}
+.menu-card-icon{width:60px;height:60px;flex-shrink:0;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;}
+.icon-red{background:rgba(176,16,32,.1);color:var(--primary);}
+.menu-card-body{flex:1;}
+.menu-card-body h4{font-size:1rem;font-weight:700;margin-bottom:.25rem;}
+.menu-card-body p{font-size:.82rem;color:var(--text-muted);line-height:1.5;}
+.menu-card-arrow{color:var(--text-muted);flex-shrink:0;}
+.dash-shortcuts{display:grid;grid-template-columns:repeat(4,1fr);gap:.85rem;margin-top:1.25rem;}
+.dash-shortcut{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:1.5rem .75rem 1.25rem;display:flex;flex-direction:column;align-items:center;gap:.7rem;cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .15s;box-shadow:var(--shadow-sm);width:100%;font-size:.88rem;font-weight:600;color:var(--text);}
+.dash-shortcut:hover{border-color:var(--primary);box-shadow:0 6px 24px rgba(176,16,32,.15);transform:translateY(-3px);color:var(--primary);}
+.dash-sc-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;}
+/* ── 首頁 Home ── */
+.home-quickinfo{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.25rem;}
+.home-qi-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:.9rem .75rem;text-align:center;box-shadow:var(--shadow-sm);}
+.home-qi-label{font-size:.72rem;color:var(--text-muted);letter-spacing:.05em;margin-bottom:.35rem;}
+.home-qi-value{font-size:.98rem;font-weight:700;color:var(--text);word-break:break-all;}
+.home-section-title{font-size:.78rem;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.65rem;}
+.home-contact-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;margin-bottom:1.25rem;box-shadow:var(--shadow-sm);}
+.home-contact-row{display:flex;align-items:center;gap:.85rem;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.9rem;}
+.home-contact-row:last-child{border-bottom:none;}
+.home-contact-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(176,16,32,.08);}
+.home-contact-info{flex:1;}
+.home-contact-info strong{display:block;font-size:.82rem;font-weight:700;color:var(--text);}
+.home-contact-info span{font-size:.78rem;color:var(--text-muted);}
+.home-notice-card{background:#fffbe6;border:1.5px solid #f59e0b;border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem;}
+.home-notice-title{font-size:.85rem;font-weight:700;color:#92400e;margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem;}
+.home-notice-body{font-size:.83rem;color:#78350f;line-height:1.75;}
+/* ── 基本資料 ── */
+.profile-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:1.25rem;overflow:hidden;box-shadow:var(--shadow-sm);}
+.profile-card-header{background:var(--primary);color:#fff;padding:.9rem 1.25rem;font-size:.92rem;font-weight:700;display:flex;align-items:center;gap:.5rem;}
+.profile-row{display:flex;align-items:center;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);}
+.profile-row:last-child{border-bottom:none;}
+.profile-label{font-size:.82rem;color:var(--text-muted);min-width:6rem;flex-shrink:0;}
+.profile-value{font-size:.95rem;font-weight:600;color:var(--text);flex:1;}
+/* ── 帳務資訊 ── */
+.billing-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3.5rem 1.5rem;text-align:center;gap:1rem;color:var(--text-muted);}
+.billing-placeholder svg{color:#d0d0d0;}
+.billing-placeholder h3{font-size:1rem;font-weight:700;color:var(--text);}
+.billing-placeholder p{font-size:.88rem;line-height:1.7;}
+
+.card{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:1.5rem;}
+.card-header{display:flex;align-items:center;gap:.75rem;padding:1.25rem 1.5rem;background:var(--primary);color:#fff;}
+.card-header h3{font-size:1rem;font-weight:700;}
+.card-desc{padding:1rem 1.5rem .5rem;font-size:.9rem;color:var(--text-muted);}
+.file-list{padding:1rem 1.5rem 1.25rem;display:flex;flex-direction:column;gap:.75rem;}
+.file-item{display:flex;align-items:center;gap:1rem;padding:.9rem 1.1rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);transition:border-color .2s,background .2s;}
+.file-item:hover{border-color:var(--primary);background:rgba(176,16,32,.04);}
+.file-icon{width:40px;height:40px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;}
+.file-icon.cad{background:#e8f0fe;color:#1a73e8;}
+.file-icon.pdf{background:#fce8e6;color:#d93025;}
+.file-icon.other{background:#e6f4ea;color:#1e8e3e;}
+.file-name{flex:1;font-size:.9rem;font-weight:500;}
+.file-size{font-size:.78rem;color:var(--text-muted);flex-shrink:0;}
+.btn-download{display:inline-flex;align-items:center;gap:.4rem;background:var(--primary);color:#fff;border:none;padding:.45rem .9rem;border-radius:6px;font-size:.82rem;font-weight:600;flex-shrink:0;text-decoration:none;transition:background .2s;}
+.btn-download:hover{background:var(--primary-lt);}
+.drop-zone{margin:.5rem 1.5rem 1rem;border:2px dashed var(--border);border-radius:var(--radius);padding:2.5rem 1.5rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;color:var(--text-muted);}
+.drop-zone svg{margin:0 auto .75rem;color:var(--primary);}
+.drop-zone p{font-size:.95rem;font-weight:500;color:var(--text);}
+.drop-zone span{font-size:.8rem;}
+.drop-zone.drag-over,.drop-zone:hover{border-color:var(--primary);background:rgba(176,16,32,.04);}
+#upload-queue{padding:0 1.5rem;display:flex;flex-direction:column;gap:.6rem;}
+.upload-item{background:#f8faff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1rem;}
+.upload-item-top{display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem;}
+.upload-item-name{flex:1;font-size:.88rem;font-weight:500;}
+.upload-item-status{font-size:.78rem;padding:.2rem .6rem;border-radius:2rem;}
+.status-uploading{background:#e8f0fe;color:#1a73e8;}
+.status-done{background:#e6f4ea;color:#1e8e3e;}
+.status-error{background:#fce8e6;color:#d93025;}
+.progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--primary);border-radius:2px;transition:width .3s ease;}
+.upload-history-wrap{padding:1rem 1.5rem 1.25rem;border-top:1px solid var(--border);}
+.upload-history-title{font-size:.88rem;font-weight:600;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.75rem;}
+#upload-history{display:flex;flex-direction:column;gap:.5rem;}
+.history-item{display:flex;align-items:center;gap:.75rem;font-size:.85rem;}
+.history-item-name{flex:1;color:var(--text);}
+.history-date{color:var(--text-muted);}
+
+/* ── 預約系統 ── */
+.booking-wrap{padding:1.5rem;}
+.booking-tabs{display:flex;gap:.5rem;margin-bottom:1.75rem;flex-wrap:wrap;}
+.booking-tab{padding:.55rem 1.4rem;border-radius:2rem;border:2px solid var(--border);background:var(--surface);cursor:pointer;font-weight:600;font-size:.92rem;transition:all .2s;color:var(--text);}
+.booking-tab:hover{border-color:var(--primary);color:var(--primary);}
+.booking-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.booking-tab.booked{border-color:var(--success);color:var(--success);}
+.booking-tab.booked.active{background:var(--success);color:#fff;border-color:var(--success);}
+.booking-confirmed{background:linear-gradient(135deg,#f0fdf4,#e6fbee);border:2px solid #86efac;border-radius:var(--radius);padding:1.5rem 1.75rem;}
+.booking-status-badge{display:inline-flex;align-items:center;gap:.4rem;background:var(--success);color:#fff;padding:.35rem .9rem;border-radius:2rem;font-size:.82rem;font-weight:600;margin-bottom:1.25rem;}
+.booking-detail-grid{display:grid;gap:.55rem;margin-bottom:1.25rem;}
+.booking-detail-row{display:flex;gap:1rem;align-items:baseline;}
+.booking-detail-label{font-size:.82rem;color:#555;min-width:5rem;flex-shrink:0;}
+.booking-detail-value{font-size:.95rem;font-weight:700;color:var(--text);}
+.booking-actions{display:flex;gap:.75rem;flex-wrap:wrap;padding-top:1rem;border-top:1px solid #c6f6d5;}
+.btn-outline{display:inline-flex;align-items:center;gap:.4rem;border:2px solid var(--primary);color:var(--primary);background:transparent;padding:.5rem 1.1rem;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;transition:all .2s;}
+.btn-outline:hover{background:rgba(176,16,32,.07);}
+.btn-danger-outline{display:inline-flex;align-items:center;gap:.4rem;border:2px solid var(--danger);color:var(--danger);background:transparent;padding:.5rem 1.1rem;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;transition:all .2s;}
+.btn-danger-outline:hover{background:rgba(192,57,43,.07);}
+.cancel-confirm-box{background:#fff5f5;border:2px solid #fca5a5;border-radius:var(--radius-sm);padding:1rem 1.25rem;margin-top:1rem;}
+.cancel-confirm-box p{font-size:.9rem;color:var(--danger);margin-bottom:.75rem;font-weight:600;}
+.cancel-confirm-box .btn-row{display:flex;gap:.6rem;}
+.btn-danger{display:inline-flex;align-items:center;gap:.4rem;background:var(--danger);color:#fff;border:none;padding:.5rem 1.1rem;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;transition:background .2s;}
+.btn-danger:hover{background:#a93226;}
+.btn-ghost{display:inline-flex;align-items:center;gap:.4rem;background:#e5e7eb;color:var(--text);border:none;padding:.5rem 1.1rem;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;transition:background .2s;}
+.btn-ghost:hover{background:#d1d5db;}
+.booking-confirm-bar{position:sticky;bottom:0;z-index:10;background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:1.25rem;padding:1rem 1.25rem;border-top:2px solid var(--border);flex-wrap:wrap;box-shadow:0 -4px 12px rgba(0,0,0,.06);}
+.selected-slot-text{font-size:.88rem;color:var(--text-muted);}
+.selected-slot-text.picked{color:var(--primary);font-weight:600;}
+.booking-empty{padding:3rem 1.5rem;text-align:center;color:var(--text-muted);}
+.inspection-wrap{margin:.85rem 1.25rem 0;padding:.85rem 1rem;background:#f8f9fc;border:1.5px solid var(--border);border-radius:var(--radius-sm);}
+.inspection-title{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:.6rem;}
+.inspection-btns{display:flex;gap:.65rem;}
+.inspection-btn{flex:1;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:.6rem .5rem;background:#fff;cursor:pointer;font:inherit;text-align:center;line-height:1.4;transition:border-color .18s,background .18s;}
+.inspection-btn .ib-main{font-size:.88rem;color:var(--text);font-weight:500;}
+.inspection-btn .ib-sub{display:block;font-size:.75rem;color:var(--text-muted);margin-top:.1rem;}
+.inspection-btn.active{border-color:var(--primary);background:#fff5f5;}
+.inspection-btn.active .ib-main{color:var(--primary);font-weight:700;}
+.inspection-btn.active .ib-sub{color:var(--primary);}
+.inspection-btn:hover:not(.active){border-color:#aaa;}
+@media(max-width:480px){.inspection-btns{flex-direction:column;}.inspection-btn{padding:.55rem .75rem;}}
+.booking-locked{display:flex;flex-direction:column;align-items:center;gap:.6rem;}
+.booking-locked .lock-icon{font-size:2.2rem;margin-bottom:.25rem;}
+.booking-locked .lock-title{font-size:1rem;font-weight:700;color:var(--text);}
+.booking-locked .lock-time{font-size:.88rem;color:var(--primary);font-weight:600;}
+.booking-locked .lock-note{font-size:.82rem;color:var(--text-muted);}
+.docs-empty{padding:2.5rem 1.5rem;text-align:center;color:var(--text-muted);}
+.booking-notice{background:#fffbe6;border:1.5px solid #f59e0b;border-radius:var(--radius-sm);padding:1rem 1.25rem;margin-top:1rem;}
+.booking-notice-title{font-weight:700;color:#92400e;margin-bottom:.6rem;font-size:.95rem;}
+.booking-notice p{font-size:.87rem;color:#78350f;line-height:1.75;margin-bottom:.55rem;}
+.booking-notice p:last-child{margin-bottom:0;}
+.booking-notice strong{font-weight:700;color:#b45309;}
+
+/* ── 日曆 ── */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:.5rem 0 .75rem;}
+.cal-nav-title{font-size:.95rem;font-weight:700;color:var(--text);}
+.cal-nav-btn{background:none;border:1px solid var(--border);border-radius:6px;width:2.2rem;height:2.2rem;font-size:1.4rem;line-height:1;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.cal-nav-btn:hover:not([disabled]){background:var(--bg);}
+.cal-nav-btn[disabled]{opacity:.3;cursor:default;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-dow{text-align:center;font-size:.68rem;font-weight:700;color:var(--text-muted);padding:.3rem 0;}
+.cal-cell{min-height:60px;border:1px solid var(--border);border-radius:5px;padding:.3rem .2rem;background:var(--surface);overflow:hidden;cursor:pointer;transition:background .15s,border-color .15s;}
+.cal-cell.cal-empty{background:transparent;border-color:transparent;cursor:default;}
+.cal-cell:not(.cal-empty):hover{background:rgba(176,16,32,.05);}
+.cal-cell.cal-sel{border-color:var(--primary)!important;background:rgba(176,16,32,.08);}
+.cal-cell.cal-today{border-color:var(--primary);}
+.cal-cell.cal-today .cal-day-num{color:var(--primary);}
+.cal-day-num{font-size:.72rem;font-weight:700;color:var(--text-muted);line-height:1;margin-bottom:.2rem;}
+.cal-dots{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;padding:.1rem 0;}
+.cal-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.cal-dot.avail{background:#4caf50;}
+.cal-dot.low{background:#ff9800;}
+.cal-dot.full{background:#ccc;}
+.cal-date-panel{margin-top:1rem;border:2px solid var(--primary);border-radius:var(--radius);overflow:hidden;}
+.cal-date-panel-title{background:var(--primary);color:#fff;padding:.65rem 1.1rem;font-size:1rem;font-weight:700;display:flex;align-items:center;gap:.5rem;}
+.cal-slot-list{padding:.85rem;display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;}
+.cal-slot-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.75rem .5rem;border-radius:var(--radius-sm);border:2px solid;font-size:1rem;font-weight:600;cursor:pointer;transition:all .15s;width:100%;text-align:center;background:var(--surface);}
+.cal-slot-btn.avail{border-color:#4caf50;color:#1b5e20;}
+.cal-slot-btn.avail:hover{background:#e8f5e9;}
+.cal-slot-btn.low{border-color:#ff9800;color:#bf360c;}
+.cal-slot-btn.low:hover{background:#fff3e0;}
+.cal-slot-btn.sel{background:var(--primary);color:#fff;border-color:var(--primary-dk);}
+.cal-slot-btn.full{border-color:#e0e0e0;color:#bbb;cursor:not-allowed;background:#f9f9f9;}
+.cal-slot-time{font-size:1.1rem;font-weight:700;letter-spacing:.03em;margin-bottom:.25rem;}
+.cal-slot-remain{font-size:.78rem;padding:.15rem .5rem;border-radius:2rem;white-space:nowrap;}
+.cal-slot-btn.avail .cal-slot-remain{background:#e8f5e9;}
+.cal-slot-btn.low .cal-slot-remain{background:#fff3e0;}
+.cal-slot-btn.sel .cal-slot-remain{background:rgba(255,255,255,.25);}
+.cal-slot-btn.full .cal-slot-remain{background:#f0f0f0;}
+.cal-no-slot{padding:1rem 1.1rem;color:var(--text-muted);font-size:.9rem;}
+.modify-banner{display:flex;align-items:center;justify-content:space-between;gap:.75rem;background:#fff8e1;border:1.5px solid #f59e0b;border-radius:var(--radius-sm);padding:.65rem 1rem;margin-bottom:.75rem;}
+.modify-banner-info{font-size:.9rem;font-weight:600;color:#92400e;flex:1;}
+.modify-banner-cancel{font-size:.85rem;padding:.3rem .8rem;white-space:nowrap;}
+
+/* ── 工程進度時間軸 ── */
+.progress-overview{padding:1.25rem 1.5rem 1rem;border-bottom:1px solid var(--border);}
+.prog-bar-wrap{display:flex;align-items:center;gap:.85rem;}
+.prog-bar-label{font-size:.88rem;font-weight:600;color:var(--text);white-space:nowrap;}
+.prog-bar-track{flex:1;height:10px;background:var(--border);border-radius:5px;overflow:hidden;}
+.prog-bar-fill{height:100%;background:linear-gradient(90deg,#1e8e3e,#4caf50);border-radius:5px;transition:width 1s cubic-bezier(.4,0,.2,1);}
+.prog-bar-count{font-size:.88rem;font-weight:700;color:#1e8e3e;white-space:nowrap;min-width:3.5rem;text-align:right;}
+/* ── 工程進度統計卡 ── */
+.prog-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;padding:1.1rem 1.25rem .85rem;}
+.prog-stat-card{background:#fff;border-radius:12px;padding:1rem .75rem .9rem;text-align:center;border:1.5px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.prog-stat-icon{font-size:1.45rem;line-height:1;margin-bottom:.28rem;}
+.prog-stat-label{font-size:.78rem;color:var(--text-muted);margin-bottom:.38rem;letter-spacing:.04em;}
+.prog-stat-value{font-size:1.4rem;font-weight:900;color:var(--primary);line-height:1.2;word-break:break-word;}
+.prog-stat-value.green{color:#1565c0;}
+/* 目前進行期 橫幅（金色風格） */
+.prog-current-banner{
+  margin:.1rem 1.25rem .9rem;padding:.8rem 1.3rem;
+  background:linear-gradient(100deg,#fffbef 0%,#fdf6d8 100%);
+  border-left:5px solid #C9A227;border-radius:8px;
+  display:flex;align-items:center;gap:.55rem;flex-wrap:wrap;
+  box-shadow:0 2px 8px rgba(201,162,39,.15);
+}
+.prog-current-label{font-size:.92rem;color:#7a6000;font-weight:600;}
+.prog-current-phase{font-size:1.3rem;font-weight:900;color:#B8860B;letter-spacing:.06em;text-shadow:0 1px 0 rgba(255,255,255,.8);}
+/* ── 整體進度條 ── */
+.tl-pct-row{display:flex;align-items:center;gap:.85rem;padding:.9rem 1.5rem .5rem;}
+.tl-pct-track{flex:1;height:9px;background:#eee;border-radius:5px;overflow:hidden;}
+.tl-pct-fill{height:100%;background:linear-gradient(90deg,#1565c0,#42a5f5);border-radius:5px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+.tl-pct-label{font-size:.95rem;font-weight:800;color:#1565c0;white-space:nowrap;min-width:3rem;text-align:right;}
+/* 圖例 */
+.tl-legend{display:flex;gap:1.1rem;justify-content:flex-start;padding:.15rem 1.5rem .85rem;flex-wrap:wrap;border-bottom:1px solid var(--border);}
+.tl-legend-item{display:flex;align-items:center;gap:.35rem;font-size:.74rem;color:var(--text-muted);}
+.tl-legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+
+/* ── 蛇形時間軸 ── */
+@keyframes tl-pulse{0%,100%{box-shadow:0 0 0 0 rgba(249,168,37,.5);}60%{box-shadow:0 0 0 9px rgba(249,168,37,0);}}
+.snake-wrap{padding:.9rem 1.25rem 1.2rem;position:relative;}
+.snake-track{display:flex;position:relative;height:44px;}
+.snake-track.rtl{flex-direction:row-reverse;}
+.snake-line{position:absolute;top:21px;height:3px;border-radius:2px;z-index:0;}
+.sn-slot{flex:1;display:flex;justify-content:center;align-items:center;position:relative;z-index:1;}
+.snake-dot{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:800;border:2.5px solid transparent;}
+.sn-done .snake-dot{background:#1565c0;border-color:#1565c0;color:#fff;}
+.sn-ongoing .snake-dot{background:#f9a825;border-color:#f9a825;color:#fff;animation:tl-pulse 1.8s ease-in-out infinite;}
+.sn-pending .snake-dot{background:#f5f5f5;border-color:#bdbdbd;color:#9e9e9e;}
+.snake-lbls{display:flex;padding-bottom:.85rem;}
+.snake-lbls.rtl{flex-direction:row-reverse;}
+.sn-lbl{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:.4rem .15rem 0;}
+.snake-ph{font-size:.8rem;color:var(--text-muted);font-weight:600;line-height:1.3;word-break:break-word;}
+.snake-nm{font-size:.76rem;color:var(--text);line-height:1.4;word-break:break-word;margin-top:.15rem;}
+.sn-done .snake-ph{color:#1565c0;}
+.sn-ongoing .snake-ph{color:#e65100;font-weight:700;}
+.sn-ongoing .snake-nm{font-weight:600;}
+.snake-turn{position:absolute;box-sizing:border-box;pointer-events:none;}
+.snake-turn.right{border-right:3px solid #e0e0e0;border-top:3px solid #e0e0e0;border-bottom:3px solid #e0e0e0;border-radius:0 9999px 9999px 0;}
+.snake-turn.left{border-left:3px solid #e0e0e0;border-top:3px solid #e0e0e0;border-bottom:3px solid #e0e0e0;border-radius:9999px 0 0 9999px;}
+.snake-turn.snt-done{border-color:#1565c0;}
+.snake-turn.snt-going{border-color:#f9a825;}
+
+.progress-table-title{padding:.85rem 1.5rem .4rem;font-size:.82rem;font-weight:600;color:var(--text-muted);letter-spacing:.06em;border-top:1px solid var(--border);}
+/* 照片說明文字 */
+.progress-photo{position:relative;}
+.photo-name{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);color:#fff;font-size:.65rem;padding:.25rem .4rem;line-height:1.3;word-break:break-all;}
+
+/* ── 工程進度表格 ── */
+.progress-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+.progress-table th{background:var(--primary);color:#fff;padding:.7rem 1rem;text-align:center;font-size:.88rem;white-space:nowrap;letter-spacing:.04em;}
+.progress-table th:nth-child(2){text-align:left;}
+.progress-table td{padding:.8rem 1rem;border-bottom:1px solid var(--border);font-size:.9rem;vertical-align:middle;text-align:center;line-height:1.5;}
+.progress-table td:nth-child(2){text-align:left;font-weight:500;}
+.progress-table tr:last-child td{border-bottom:none;}
+.progress-table tbody tr:hover{background:rgba(176,16,32,.03);}
+.prog-status{display:inline-block;padding:.25rem .75rem;border-radius:2rem;font-size:.8rem;font-weight:600;white-space:nowrap;}
+.prog-done{background:#e6f4ea;color:#1e8e3e;}
+.prog-ongoing{background:#fff3e0;color:#e65100;}
+.prog-pending{background:#f1f3f4;color:#666;}
+.btn-photo{background:rgba(176,16,32,.08);color:var(--primary);border:1.5px solid rgba(176,16,32,.2);padding:.3rem .65rem;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s;}
+.btn-photo:hover{background:rgba(176,16,32,.15);}
+.btn-photo.open{background:var(--primary);color:#fff;border-color:var(--primary);}
+.photo-row td{padding:0!important;background:#fafafa;}
+.progress-carousel{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:.75rem;padding:.85rem 1rem;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.progress-carousel::-webkit-scrollbar{display:none;}
+.progress-photo{flex:0 0 46%;scroll-snap-align:start;border-radius:var(--radius-sm);overflow:hidden;aspect-ratio:4/3;cursor:zoom-in;background:#eee;}
+.progress-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s;}
+.progress-photo img:hover{transform:scale(1.03);}
+/* 最新照片區 */
+.latest-photo-wrap{padding:.75rem 1.25rem 1rem;border-bottom:1px solid var(--border);}
+.latest-photo-title{font-size:.82rem;font-weight:600;color:var(--text-muted);letter-spacing:.05em;margin-bottom:.55rem;}
+/* Lightbox */
+#photo-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9500;display:flex;align-items:center;justify-content:center;cursor:zoom-out;}
+#photo-lightbox img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+.lightbox-close{position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,.15);border:none;color:#fff;width:2.75rem;height:2.75rem;border-radius:50%;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.lightbox-close:hover{background:rgba(255,255,255,.3);}
+
+/* ── 管理員頁籤 ── */
+#admin-tabs{position:fixed;top:var(--nav-h);left:0;right:0;height:var(--tab-h);background:#fff;border-bottom:1.5px solid var(--border);z-index:900;display:none;box-shadow:0 2px 10px rgba(0,0,0,.07);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;}
+#admin-tabs::-webkit-scrollbar{display:none;}
+#admin-tabs.visible{display:flex;}
+.admin-tab{flex:0 0 auto;min-width:80px;display:flex;align-items:center;justify-content:center;padding:.3rem .85rem;border:none;background:none;font-size:1rem;font-weight:600;color:var(--text-muted);cursor:pointer;border-bottom:3px solid transparent;transition:color .18s,background .18s,border-color .18s;white-space:nowrap;}
+.admin-tab:hover:not(.active){color:var(--charcoal);background:rgba(0,0,0,.03);}
+.admin-tab.active{color:#fff;background:var(--primary);border-bottom-color:transparent;font-weight:700;}
+.tab-sep{display:flex;align-items:center;color:#ccc;font-size:1.05rem;font-weight:300;flex-shrink:0;user-select:none;pointer-events:none;}
+#admin-tabs.visible::before,#admin-tabs.visible::after{content:'｜';align-self:center;color:#ccc;font-size:1.05rem;font-weight:300;flex-shrink:0;}
+
+/* ── RWD ── */
+@media(max-width:640px){
+  /* 統計卡：2欄 */
+  .prog-stats-row{grid-template-columns:repeat(2,1fr);gap:.5rem;padding:.85rem .9rem .65rem;}
+  .prog-stat-card{padding:.75rem .5rem .7rem;}
+  .prog-stat-icon{font-size:1.2rem;}
+  .prog-stat-value{font-size:1.25rem;}
+  .prog-stat-label{font-size:.73rem;}
+  /* 目前進行橫幅 */
+  .prog-current-banner{flex-wrap:wrap;margin:.1rem .9rem .75rem;padding:.65rem .95rem;gap:.35rem;}
+  .prog-current-phase{font-size:1.15rem;}
+  .prog-current-label{font-size:.84rem;}
+  /* 百分比進度條 */
+  .tl-pct-row{padding:.2rem .9rem .75rem;}
+  .tl-pct-label{font-size:.85rem;}
+  /* 圖例 */
+  .tl-legend{gap:.75rem;padding:.1rem .9rem .75rem;}
+  .tl-legend-item{font-size:.7rem;}
+  /* 蛇形時間軸 */
+  .snake-wrap{padding:.65rem .9rem .9rem;}
+  .snake-track{height:38px;}
+  .snake-line{top:18px;}
+  .snake-dot{width:34px;height:34px;font-size:.82rem;}
+  .snake-ph{font-size:.66rem;}
+  .snake-nm{font-size:.62rem;}
+  /* 照片 */
+  .progress-photo{flex:0 0 82%;}
+  .photo-name{font-size:.6rem;}
+  .latest-photo-wrap{padding:.65rem .9rem .85rem;}
+  /* 表格 */
+  #progress-list{overflow-x:unset;}
+  .progress-table th{font-size:.68rem;padding:.5rem .25rem;letter-spacing:0;}
+  .progress-table td{font-size:.72rem;padding:.5rem .25rem;}
+  .progress-table th:nth-child(1),.progress-table td:nth-child(1){width:15%;}
+  .progress-table th:nth-child(2),.progress-table td:nth-child(2){width:35%;white-space:normal;word-break:break-word;}
+  .progress-table th:nth-child(3),.progress-table td:nth-child(3){width:22%;}
+  .progress-table th:nth-child(4),.progress-table td:nth-child(4){width:16%;}
+  .progress-table th:nth-child(5),.progress-table td:nth-child(5){width:12%;}
+  .prog-status{font-size:.65rem;padding:.15rem .35rem;}
+  .btn-photo{font-size:.75rem;padding:.25rem .3rem;}
+  :root{--nav-h:60px;--tab-h:92px;}
+  html{font-size:15px;}
+  .nav-inner{padding:0 .9rem;}
+  .nav-logo{height:40px;}
+  .nav-subtitle,#nav-user-info{display:none;}
+  .btn-logout{padding:.3rem .65rem;font-size:.78rem;}
+  .login-card{padding:1.75rem 1.25rem;border-radius:16px;}
+  .login-logo-wrap{width:200px;}
+  select,input[type="text"]{font-size:16px;}
+  .container{padding:1rem .9rem;}
+  .page-title{font-size:1.2rem;margin-bottom:1rem;}
+  .welcome-banner{padding:1rem 1.15rem;margin-bottom:1.25rem;}
+  .welcome-banner h2{font-size:1.1rem;}
+  .menu-grid{grid-template-columns:1fr;gap:.75rem;}
+  .menu-card{padding:1rem 1.1rem;gap:.9rem;}
+  .menu-card-icon{width:48px;height:48px;}
+  .dash-shortcuts{grid-template-columns:repeat(2,1fr);gap:.6rem;}
+  .dash-shortcut{padding:1.1rem .5rem .95rem;font-size:.82rem;}
+  .dash-sc-icon{width:48px;height:48px;}
+  #admin-tabs.visible{flex-wrap:wrap;height:auto;overflow-x:visible;justify-content:flex-start;}
+  #admin-tabs.visible::before,#admin-tabs.visible::after{display:none;}
+  .tab-sep{display:none;}
+  .admin-tab{flex:1 0 23%;min-width:0;font-size:.88rem;padding:.58rem .1rem;border-bottom:none;border-right:1px solid var(--border);}
+  /* 第一排最後一個（第4個按鈕=第7個子元素）和最後一個按鈕不要右邊線 */
+  .admin-tab:nth-child(7),.admin-tab:last-child{border-right:none;}
+  /* 第一排4個按鈕加下邊線，做為兩排分隔 */
+  .admin-tab:nth-child(1),.admin-tab:nth-child(3),.admin-tab:nth-child(5),.admin-tab:nth-child(7){border-bottom:1px solid var(--border);}
+  .home-quickinfo{grid-template-columns:repeat(3,1fr);gap:.5rem;}
+  .home-qi-card{padding:.75rem .5rem;}
+  .home-qi-value{font-size:.88rem;}
+  .unit-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem;}
+  .unit-card{padding:1.5rem .75rem;}
+  .file-list{padding:.75rem 1rem 1rem;}
+  .file-item{flex-wrap:wrap;gap:.65rem;padding:.8rem .9rem;}
+  .btn-download{width:100%;justify-content:center;min-height:44px;}
+  .drop-zone{margin:.5rem .75rem 1rem;padding:1.75rem 1rem;}
+  #upload-queue,.upload-history-wrap{padding:0 .75rem;}
+  .booking-wrap{padding:.85rem;}
+  .booking-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:.35rem;margin-bottom:1.25rem;gap:.4rem;scrollbar-width:none;}
+  .booking-tabs::-webkit-scrollbar{display:none;}
+  .booking-tab{white-space:nowrap;flex-shrink:0;padding:.5rem 1.1rem;font-size:.88rem;min-height:40px;}
+  .booking-actions{gap:.5rem;flex-direction:column;}
+  .btn-outline,.btn-danger-outline{padding:.6rem 1rem;font-size:.88rem;min-height:44px;width:100%;justify-content:center;}
+  .btn-danger,.btn-ghost{padding:.6rem 1rem;font-size:.88rem;min-height:44px;}
+  .cancel-confirm-box .btn-row{flex-direction:column;}
+  .cancel-confirm-box .btn-row button{width:100%;justify-content:center;min-height:44px;}
+  .booking-confirm-bar{flex-direction:column;align-items:stretch;padding:.85rem 1rem;gap:.6rem;}
+  .booking-confirm-bar .btn-primary{width:100%;justify-content:center;min-height:48px;font-size:1rem;}
+  .selected-slot-text{text-align:center;}
+  .cal-nav-btn{width:2.4rem;height:2.4rem;font-size:1.5rem;}
+  .cal-cell{min-height:66px;padding:.22rem .12rem;}
+  .cal-day-num{font-size:.68rem;}
+  .cal-slot-list{grid-template-columns:repeat(2,1fr);gap:.5rem;}
+}
+@media(max-width:380px){.cal-cell{min-height:58px;}}
+@media(min-width:641px) and (max-width:1024px){
+  .menu-grid{grid-template-columns:repeat(2,1fr);}
+  .unit-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
+}
+@media(min-width:641px){
+  html{font-size:17px;}
+  #admin-tabs.visible{justify-content:center;}
+  .admin-tab{font-size:1.05rem;min-width:90px;padding:.3rem 1.1rem;}
+  .page-title{font-size:1.65rem;}
+  .profile-label{font-size:.88rem;min-width:6.5rem;}
+  .profile-value{font-size:1rem;}
+  .home-qi-label{font-size:.78rem;}
+  .home-qi-value{font-size:1.05rem;}
+  .home-contact-info strong{font-size:.9rem;}
+  .home-contact-info span{font-size:.84rem;}
+  .home-notice-body{font-size:.9rem;}
+  .card-desc{font-size:.95rem;}
+  .progress-table th{font-size:.92rem;}
+  .progress-table td{font-size:.95rem;}
+}
+</style>
 </head>
 <body>
 
-  <!-- ── Loading Overlay ── -->
-  <div id="loading-overlay" class="hidden">
-    <div class="spinner"></div>
-    <p>處理中，請稍候…</p>
+<div id="loading-overlay" class="hidden">
+  <div class="spinner"></div>
+  <p>處理中，請稍候…</p>
+</div>
+<div id="toast" class="toast hidden"></div>
+
+<nav id="navbar" class="hidden">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <img src="https://raw.githubusercontent.com/nuhousetw-hue/nuhouse-service/main/logo.png" alt="新濠建設機構" class="nav-logo"/>
+      <span class="nav-subtitle">客戶服務平台</span>
+    </div>
+    <div class="nav-user">
+      <span id="nav-user-info"></span>
+      <button class="btn-logout" onclick="App.logout()">登出</button>
+    </div>
   </div>
+</nav>
 
-  <!-- ── Toast ── -->
-  <div id="toast" class="toast hidden"></div>
+<!-- 頁籤導覽 -->
+<div id="admin-tabs">
+  <button class="admin-tab" data-screen="dashboard" onclick="App.goTo('dashboard')">首頁</button>
+  <span class="tab-sep">｜</span>
+  <button class="admin-tab" data-screen="drawings" onclick="App.goTo('drawings')">客變圖資</button>
+  <span class="tab-sep">｜</span>
+  <button class="admin-tab" data-screen="booking" onclick="App.goTo('booking')">線上預約</button>
+  <span class="tab-sep">｜</span>
+  <button class="admin-tab" data-screen="docs" onclick="App.goTo('docs')">相關檔案</button>
+  <span class="tab-sep">｜</span>
+  <button class="admin-tab" data-screen="progress" onclick="App.goTo('progress')">工程進度</button>
+  <span class="tab-sep">｜</span>
+  <button class="admin-tab" data-screen="profile" onclick="App.goTo('profile')">基本資料</button>
+  <span class="tab-sep">｜</span>
+  <button class="admin-tab" data-screen="billing" onclick="App.goTo('billing')">帳務資訊</button>
+</div>
 
-  <!-- ── Navigation ── -->
-  <nav id="navbar" class="hidden">
-    <div class="nav-inner">
-      <div class="nav-brand">
-        <img src="logo.png" alt="新濠建設機構" class="nav-logo" onerror="this.style.display='none'" />
-        <span class="nav-subtitle">客戶服務平台</span>
-      </div>
-      <div class="nav-user">
-        <span id="nav-user-info"></span>
-        <button class="btn-logout" onclick="App.logout()">登出</button>
-      </div>
-    </div>
-  </nav>
-
-  <!-- ════════════════════════════════════════
-       SCREEN 1 ── 登入
-  ════════════════════════════════════════ -->
-  <section id="screen-login" class="screen screen-login active">
-    <div class="login-hero">
-      <div class="login-card">
-        <div class="login-header">
-          <div class="login-logo-wrap">
-            <img src="logo.png" alt="新濠建設機構" class="login-logo" />
-          </div>
-          <p class="login-tagline">客戶服務平台</p>
+<!-- 登入 -->
+<section id="screen-login" class="screen screen-login" style="display:flex">
+  <div class="login-hero">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo-wrap">
+          <img src="https://raw.githubusercontent.com/nuhousetw-hue/nuhouse-service/main/logo.png" alt="新濠建設機構" class="login-logo"/>
         </div>
-
-        <form id="login-form" class="login-form" onsubmit="App.login(event)">
-          <div class="form-group">
-            <label for="select-project">選擇建案</label>
-            <div class="select-wrap">
-              <select id="select-project" required>
-                <option value="">── 載入中 ──</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="input-id">身分證字號</label>
-            <input
-              type="text"
-              id="input-id"
-              placeholder="請輸入身分證字號（例：A123456789）"
-              maxlength="10"
-              autocomplete="off"
-              required
-            />
-            <span class="field-hint">大寫字母開頭，共 10 碼</span>
-          </div>
-
-          <button type="submit" class="btn-primary btn-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            登入
-          </button>
-        </form>
-
-        <p class="login-note">若有任何問題，請於 LINE@ 洽詢客服人員</p>
+        <p class="login-tagline">客戶服務平台</p>
       </div>
-    </div>
-  </section>
-
-  <!-- ════════════════════════════════════════
-       SCREEN 2 ── 主選單
-  ════════════════════════════════════════ -->
-  <section id="screen-dashboard" class="screen">
-    <div class="container">
-      <div class="welcome-banner">
-        <div>
-          <h2 id="dashboard-welcome">歡迎您回來</h2>
-          <p id="dashboard-info" class="text-muted"></p>
+      <form class="login-form" onsubmit="App.login(event)">
+        <div class="form-group">
+          <label>選擇建案</label>
+          <div class="select-wrap">
+            <select id="select-project" required>
+              <option value="">── 請選擇建案 ──</option>
+              <option value="P001">新濠一滙</option>
+              <option value="P002">新濠一閱</option>
+              <option value="P003">新濠漾II紐約公園</option>
+              <option value="P004">新濠漾III巴黎公園</option>
+              <option value="P005">新濠漾IV英倫公園</option>
+              <option value="P006">新濠岳</option>
+              <option value="P007">新濠信義</option>
+            </select>
+          </div>
         </div>
-      </div>
-
-      <h3 class="section-title">服務項目</h3>
-      <div class="menu-grid">
-
-        <button class="menu-card" onclick="App.goTo('drawings')">
-          <div class="menu-card-icon icon-blue">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          </div>
-          <div class="menu-card-body">
-            <h4>客變圖資</h4>
-            <p>下載客變 CAD / PDF<br>上傳設計師圖面</p>
-          </div>
-          <svg class="menu-card-arrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        <div class="form-group">
+          <label>身份證字號</label>
+          <input type="text" id="input-id" placeholder="請輸入身份證字號（例：A123456789）" maxlength="10" autocomplete="off" required/>
+          <span class="field-hint">大寫字母開頭，共 10 碼</span>
+        </div>
+        <button type="submit" class="btn-primary btn-full">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          登入
         </button>
+      </form>
+      <p class="login-note">若有任何問題，請於 LINE@ 洽詢客服人員</p>
+    </div>
+  </div>
+</section>
 
-        <!-- 未來可增加更多服務卡片，例如：工程進度、繳款紀錄… -->
-        <div class="menu-card menu-card-disabled">
-          <div class="menu-card-icon icon-grey">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          </div>
-          <div class="menu-card-body">
-            <h4>工程進度</h4>
-            <p>即將推出</p>
-          </div>
-        </div>
+<!-- 戶別選擇 -->
+<section id="screen-select-unit" class="screen">
+  <div class="container">
+    <div class="welcome-banner">
+      <h2 id="select-unit-name"></h2>
+      <p id="select-unit-project" class="sub"></p>
+    </div>
+    <h3 class="section-title">請選擇您的戶別</h3>
+    <div id="unit-grid" class="unit-grid"></div>
+  </div>
+</section>
 
-        <div class="menu-card menu-card-disabled">
-          <div class="menu-card-icon icon-grey">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          </div>
-          <div class="menu-card-body">
-            <h4>繳款紀錄</h4>
-            <p>即將推出</p>
-          </div>
-        </div>
-
+<!-- 首頁 -->
+<section id="screen-dashboard" class="screen">
+  <div class="container">
+    <div class="welcome-banner">
+      <h2 id="dashboard-welcome">歡迎您回來</h2>
+    </div>
+    <button id="btn-back-units" class="btn-back hidden" onclick="App.backToUnits()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      切換其他戶別
+    </button>
+    <!-- 個人資訊快覽 -->
+    <div class="home-quickinfo">
+      <div class="home-qi-card">
+        <div class="home-qi-label">建案</div>
+        <div class="home-qi-value" id="home-qi-project">—</div>
+      </div>
+      <div class="home-qi-card">
+        <div class="home-qi-label">戶別</div>
+        <div class="home-qi-value" id="home-qi-unit">—</div>
+      </div>
+      <div class="home-qi-card">
+        <div class="home-qi-label">姓名</div>
+        <div class="home-qi-value" id="home-qi-name">—</div>
       </div>
     </div>
-  </section>
-
-  <!-- ════════════════════════════════════════
-       SCREEN 3 ── 客變圖資
-  ════════════════════════════════════════ -->
-  <section id="screen-drawings" class="screen">
-    <div class="container">
-
-      <button class="btn-back" onclick="App.goTo('dashboard')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        返回主選單
-      </button>
-
-      <h2 class="page-title">客變圖資</h2>
-
-      <!-- ── 下載區 ── -->
-      <div class="card">
-        <div class="card-header">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <h3>下載區</h3>
-        </div>
-        <p class="card-desc">以下為您的戶型客變圖資，請下載後交予設計師參考。</p>
-        <div id="download-list" class="file-list">
-          <p class="text-muted text-center">載入中…</p>
-        </div>
+    <!-- 公告 -->
+    <div class="home-notice-card">
+      <div class="home-notice-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        重要公告
       </div>
-
-      <!-- ── 上傳區 ── -->
-      <div class="card" style="margin-top:1.5rem">
-        <div class="card-header">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <h3>上傳區</h3>
-        </div>
-        <p class="card-desc">請將您與設計師討論後的圖面上傳，支援所有格式（DWG、PDF、JPG 等）。</p>
-
-        <div
-          id="drop-zone"
-          class="drop-zone"
-          onclick="document.getElementById('file-input').click()"
-          ondragover="App.onDragOver(event)"
-          ondragleave="App.onDragLeave(event)"
-          ondrop="App.onDrop(event)"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <p>點擊或拖曳檔案至此處</p>
-          <span>支援所有檔案格式，單檔上限 20 MB</span>
-        </div>
-        <input type="file" id="file-input" class="hidden" multiple onchange="App.onFileSelect(event)" />
-
-        <!-- 上傳佇列 -->
-        <div id="upload-queue"></div>
-
-        <!-- 上傳紀錄 -->
-        <div class="upload-history-wrap">
-          <h4 class="upload-history-title">已上傳紀錄</h4>
-          <div id="upload-history">
-            <p class="text-muted text-center">載入中…</p>
-          </div>
-        </div>
-      </div>
-
+      <div class="home-notice-body" id="home-notice-body">如有任何問題，請透過 LINE@ 或電話與客服人員聯繫，感謝您的配合。</div>
     </div>
-  </section>
+    <!-- 聯絡客服 -->
+    <p class="home-section-title">聯絡客服</p>
+    <div class="home-contact-card">
+      <div class="home-contact-row">
+        <div class="home-contact-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="home-contact-info">
+          <strong>LINE@ 官方帳號</strong>
+          <span>可與客服人員即時對話</span>
+        </div>
+      </div>
+      <div class="home-contact-row">
+        <div class="home-contact-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.58 4.91 2 2 0 0 1 3.56 2.73h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.5a16 16 0 0 0 6 6l.88-.88a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 18z"/></svg>
+        </div>
+        <div class="home-contact-info">
+          <strong>客服專線</strong>
+          <span>服務時間：週一至週五 09:00 – 18:00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+<!-- 線上預約 -->
+<section id="screen-booking" class="screen">
+  <div class="container">
+    <h2 class="page-title">線上預約</h2>
+    <div class="card">
+      <div class="card-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <h3>選擇服務與時段</h3>
+      </div>
+      <div id="booking-content" class="booking-wrap"><p class="text-muted text-center">載入中…</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 相關檔案 -->
+<section id="screen-docs" class="screen">
+  <div class="container">
+    <h2 class="page-title">相關檔案</h2>
+    <div class="card">
+      <div class="card-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <h3>重要文件</h3>
+      </div>
+      <p class="card-desc">合約、規約、注意事項等相關文件，點擊下載。</p>
+      <div id="docs-list" class="file-list"><p class="text-muted text-center">載入中…</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 基本資料 -->
+<section id="screen-profile" class="screen">
+  <div class="container">
+    <h2 class="page-title">基本資料</h2>
+    <div class="profile-card">
+      <div class="profile-card-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        個人資訊
+      </div>
+      <div class="profile-row">
+        <span class="profile-label">姓名</span>
+        <span class="profile-value" id="profile-name">—</span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-label">身份證字號</span>
+        <span class="profile-value" id="profile-idcard">—</span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-label">建案名稱</span>
+        <span class="profile-value" id="profile-project">—</span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-label">戶別</span>
+        <span class="profile-value" id="profile-unit">—</span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-label">戶籍地址</span>
+        <span class="profile-value" id="profile-addr-reg">—</span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-label">通訊地址</span>
+        <span class="profile-value" id="profile-addr">—</span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-label">市內電話</span>
+        <span class="profile-value" id="profile-phone">—</span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-label">行動電話</span>
+        <span class="profile-value" id="profile-mobile">—</span>
+      </div>
+    </div>
+    <p style="font-size:.88rem;color:var(--text-muted);text-align:center;line-height:1.9;margin-top:.5rem;">若有任何問題，請於 LINE@ 洽客服人員</p>
+  </div>
+</section>
+
+<!-- 帳務資訊 -->
+<section id="screen-billing" class="screen">
+  <div class="container">
+    <h2 class="page-title">帳務資訊</h2>
+    <div class="card">
+      <div class="card-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <h3>帳務資訊</h3>
+      </div>
+      <div class="billing-placeholder">
+        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <h3>帳務資訊功能即將上線</h3>
+        <p>此功能目前正在建置中，上線後可查詢<br>繳款紀錄、應繳金額及付款狀態等資訊。<br>若有任何帳務問題，請透過 LINE@ 洽詢客服。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 工程進度 -->
+<section id="screen-progress" class="screen">
+  <div class="container">
+    <h2 class="page-title">工程進度</h2>
+    <div class="card">
+      <div class="card-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <h3>各期工程進度</h3>
+      </div>
+      <p style="padding:.75rem 1.5rem .25rem;font-weight:700;color:var(--text);font-size:1rem;letter-spacing:.06em;text-align:center;">工程期表</p>
+      <div id="progress-list" style="padding:.25rem 0"><p class="text-muted text-center">載入中…</p></div>
+      <p style="padding:.85rem 1.5rem;font-size:.82rem;color:var(--text-muted);border-top:1px solid var(--border);text-align:center;line-height:1.7;">說明：進度內容僅供參考，實際時程仍需依現況做調整</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- 照片 Lightbox -->
+<div id="photo-lightbox" class="hidden" onclick="App.closeLightbox()">
+  <img id="lightbox-img" src="" alt=""/>
+  <button class="lightbox-close" onclick="App.closeLightbox()">✕</button>
+</div>
+
+<!-- 客變圖資 -->
+<section id="screen-drawings" class="screen">
+  <div class="container">
+    <h2 class="page-title">客變圖資</h2>
+    <div class="card">
+      <div class="card-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <h3>下載區</h3>
+      </div>
+      <p class="card-desc">以下為您的戶型客變圖資，請下載後交予設計師參考。</p>
+      <div id="download-list" class="file-list"><p class="text-muted text-center">載入中…</p></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <h3>上傳區</h3>
+      </div>
+      <p class="card-desc">請將您與設計師討論後的圖面上傳，支援所有格式（DWG、PDF、JPG 等）。</p>
+      <div id="drop-zone" class="drop-zone"
+        onclick="document.getElementById('file-input').click()"
+        ondragover="App.onDragOver(event)"
+        ondragleave="App.onDragLeave(event)"
+        ondrop="App.onDrop(event)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p>點擊或拖曳檔案至此處</p>
+        <span>支援所有檔案格式，單檔上限 20 MB</span>
+      </div>
+      <input type="file" id="file-input" style="display:none" multiple onchange="App.onFileSelect(event)"/>
+      <div id="upload-queue"></div>
+      <div class="upload-history-wrap">
+        <h4 class="upload-history-title">已上傳紀錄</h4>
+        <div id="upload-history"><p class="text-muted text-center">載入中…</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ★ 請將下方網址換成您部署後的 GAS /exec 網址 ★ */
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbzRS-jAwIqe6KhxeuhCcQQXDP-zNZD1lhbf3h7MO_oWhluGfJotN58skku574BtgkuO/exec';
+
+var App = (function() {
+  var state = { user: null, customer: null };
+  var bState = { slots: [], myBookings: [], bookingSettings: [], activeService: null, selectedSlot: null, pendingCancel: null, calMonth: null, selectedDate: null, modifyingBooking: null, method: null };
+  var _bCache = { data: null, ts: 0 };
+  var _B_TTL  = 120000; // 前端快取 2 分鐘
+
+  function prefetchBookingData() {
+    if (!state.user) return;
+    callServer('serverGetBookingData', state.user.projectCode, state.user.idCard, state.user.unit)
+      .then(function(r) { _bCache = { data: r, ts: Date.now() }; })
+      .catch(function(){});
+  }
+
+  function _applyBookingData(result) {
+    bState.slots = result.slots || []; bState.myBookings = result.myBookings || [];
+    bState.bookingSettings = result.settings || [];
+    bState.pendingCancel = null;
+    var el = document.getElementById('booking-content');
+    if (!el) return;
+    var services = [];
+    bState.slots.forEach(function(s) { if (services.indexOf(s.serviceType) < 0) services.push(s.serviceType); });
+    bState.myBookings.forEach(function(b) { if (services.indexOf(b.serviceType) < 0) services.push(b.serviceType); });
+    if (!services.length) { el.innerHTML = '<div class="booking-empty"><p>目前尚無開放預約的服務項目，請稍後查詢。</p></div>'; return; }
+    if (!bState.activeService || services.indexOf(bState.activeService) < 0) bState.activeService = services[0];
+    renderBooking(services);
+  }
+  var SESSION_KEY = 'xh_session';
+  var MAX_SIZE = 20 * 1024 * 1024;
+
+  function callServer(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function(resolve, reject) {
+      var done = false;
+      var timer = setTimeout(function() {
+        if (!done) { done = true; reject(new Error('連線逾時，請稍後再試')); }
+      }, 30000);
+      fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ fn: fn, args: args })
+      })
+      .then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function(data) {
+        if (!done) { done = true; clearTimeout(timer); resolve(data); }
+      })
+      .catch(function(err) {
+        if (!done) { done = true; clearTimeout(timer); reject(err); }
+      });
+    });
+  }
+
+  var SCREENS = ['login','select-unit','dashboard','drawings','booking','docs','progress','profile','billing'];
+
+  function showScreen(name) {
+    SCREENS.forEach(function(n) {
+      var el = document.getElementById('screen-' + n);
+      if (el) el.style.display = 'none';
+    });
+    var target = document.getElementById('screen-' + name);
+    if (!target) { showToast('找不到畫面', 'error'); document.getElementById('screen-login').style.display = 'flex'; return false; }
+    target.style.display = (name === 'login') ? 'flex' : 'block';
+    return true;
+  }
+
+  function init() {
+    showScreen('login');
+    try {
+      var saved = sessionStorage.getItem(SESSION_KEY);
+      if (saved) { state.user = JSON.parse(saved); enterApp(); prefetchBookingData(); return; }
+    } catch(e) { sessionStorage.removeItem(SESSION_KEY); }
+  }
+
+  function login(e) {
+    e.preventDefault();
+    var projectCode = document.getElementById('select-project').value;
+    var idCard = document.getElementById('input-id').value.trim().toUpperCase();
+    if (!projectCode) { showToast('請先選擇建案', 'error'); return; }
+    if (!idCard) { showToast('請輸入身份證字號', 'error'); return; }
+    if (!validateIdCard(idCard)) { showToast('身份證字號格式不正確', 'error'); return; }
+    showLoading(true);
+    callServer('serverLogin', projectCode, idCard)
+      .then(function(data) {
+        if (data.success) {
+          state.customer = { idCard: data.idCard, name: data.name, projectCode: data.projectCode, projectName: data.projectName, units: data.units };
+          if (data.units.length === 1) { selectUnit(data.units[0]); }
+          else { showUnitSelect(); }
+        } else { showToast(data.message || '查無此客戶資料', 'error'); }
+      })
+      .catch(function() { showToast('登入失敗，請稍後再試', 'error'); })
+      .then(function() { showLoading(false); });
+  }
+
+  function showUnitSelect() {
+    var c = state.customer;
+    document.getElementById('select-unit-name').textContent = '歡迎您，' + c.name;
+    document.getElementById('select-unit-project').textContent = c.projectName;
+    document.getElementById('navbar').classList.remove('hidden');
+    document.getElementById('nav-user-info').textContent = c.projectName + '｜' + c.name;
+    var grid = document.getElementById('unit-grid');
+    grid.innerHTML = '';
+    c.units.forEach(function(u) {
+      var card = document.createElement('div');
+      card.className = 'unit-card';
+      card.innerHTML = '<div class="unit-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><h4>' + esc(u.unit) + '</h4>';
+      card.onclick = function() { selectUnit(u); };
+      grid.appendChild(card);
+    });
+    document.getElementById('admin-tabs').classList.remove('visible');
+    goTo('select-unit');
+  }
+
+  function selectUnit(unit) {
+    var c = state.customer;
+    state.user = { idCard: c.idCard, name: c.name, projectCode: c.projectCode, projectName: c.projectName, unit: unit.unit, folderId: unit.folderId, units: c.units };
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(state.user));
+    enterApp();
+    prefetchBookingData();
+  }
+
+  function logout() {
+    sessionStorage.removeItem(SESSION_KEY);
+    state.user = null; state.customer = null;
+    document.getElementById('admin-tabs').classList.remove('visible');
+    goTo('login');
+    document.getElementById('input-id').value = '';
+  }
+
+  function renderProfile() {
+    var u = state.user; if (!u) return;
+    var id = u.idCard || '';
+    var masked = id.length > 4 ? id.slice(0,3) + '****' + id.slice(-1) : id;
+    document.getElementById('profile-name').textContent = u.name || '—';
+    document.getElementById('profile-idcard').textContent = masked || '—';
+    document.getElementById('profile-project').textContent = u.projectName || '—';
+    document.getElementById('profile-unit').textContent = u.unit || '—';
+    document.getElementById('profile-addr-reg').textContent = u.addressReg || '—';
+    document.getElementById('profile-addr').textContent = u.address || '—';
+    document.getElementById('profile-phone').textContent = u.phone || '—';
+    document.getElementById('profile-mobile').textContent = u.mobile || '—';
+  }
+
+  function enterApp() {
+    var u = state.user;
+    if (!u) { showToast('請重新登入', 'error'); showScreen('login'); return; }
+    document.getElementById('nav-user-info').textContent = (u.projectName||'') + '｜' + (u.unit||'') + '｜' + (u.name||'');
+    document.getElementById('navbar').classList.remove('hidden');
+    document.getElementById('admin-tabs').classList.add('visible');
+    document.getElementById('dashboard-welcome').textContent = '歡迎您，' + (u.name||'');
+    document.getElementById('home-qi-project').textContent = u.projectName || '—';
+    document.getElementById('home-qi-unit').textContent = u.unit || '—';
+    document.getElementById('home-qi-name').textContent = u.name || '—';
+    var hasMulti = !!(state.customer && state.customer.units && state.customer.units.length > 1) ||
+                   !!(state.user && state.user.units && state.user.units.length > 1);
+    document.getElementById('btn-back-units').classList.toggle('hidden', !hasMulti);
+    goTo('progress');
+  }
+
+  function backToUnits() {
+    if (!state.customer && state.user && state.user.units) {
+      state.customer = { idCard: state.user.idCard, name: state.user.name, projectCode: state.user.projectCode, projectName: state.user.projectName, units: state.user.units };
+    }
+    showUnitSelect();
+  }
+
+  function goTo(screen) {
+    if (screen === 'login') { document.getElementById('navbar').classList.add('hidden'); document.getElementById('admin-tabs').classList.remove('visible'); }
+    if (!showScreen(screen)) return;
+    document.body.scrollTop = 0; document.documentElement.scrollTop = 0;
+    document.querySelectorAll('.admin-tab').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.screen === screen);
+    });
+    if (screen === 'drawings') { loadDownloads(); loadUploadHistory(); }
+    if (screen === 'booking')  { loadBooking(); }
+    if (screen === 'docs')     { loadProjectDocs(); }
+    if (screen === 'progress') { loadProgress(); }
+    if (screen === 'profile')  { renderProfile(); }
+  }
+
+  /* ── 預約 ── */
+  function loadBooking() {
+    var el = document.getElementById('booking-content');
+    var isFresh = _bCache.data && (Date.now() - _bCache.ts < _B_TTL);
+    if (isFresh) {
+      _applyBookingData(_bCache.data);
+      // 背景靜默更新
+      callServer('serverGetBookingData', state.user.projectCode, state.user.idCard, state.user.unit)
+        .then(function(r) { _bCache = { data: r, ts: Date.now() }; _applyBookingData(r); })
+        .catch(function(){});
+    } else {
+      el.innerHTML = '<p class="text-muted text-center" style="padding:2.5rem">載入中…</p>';
+      callServer('serverGetBookingData', state.user.projectCode, state.user.idCard, state.user.unit)
+        .then(function(r) { _bCache = { data: r, ts: Date.now() }; _applyBookingData(r); })
+        .catch(function() { el.innerHTML = '<div class="booking-empty"><p>載入失敗，請稍後再試</p></div>'; });
+    }
+  }
+
+  function getServices() {
+    var services = [];
+    bState.slots.forEach(function(s) { if (services.indexOf(s.serviceType) < 0) services.push(s.serviceType); });
+    bState.myBookings.forEach(function(b) { if (services.indexOf(b.serviceType) < 0) services.push(b.serviceType); });
+    return services;
+  }
+
+  function renderBooking(services) {
+    var el = document.getElementById('booking-content');
+    var tabs = '';
+    services.forEach(function(svc) {
+      var isBooked = bState.myBookings.some(function(b) { return b.serviceType === svc; });
+      var isActive = bState.activeService === svc;
+      var cls = 'booking-tab' + (isBooked ? ' booked' : '') + (isActive ? ' active' : '');
+      tabs += '<button class="' + cls + '" onclick="App.switchService(\'' + esc(svc) + '\')">' + esc(svc) + (isBooked ? ' (已預約)' : '') + '</button>';
+    });
+    el.innerHTML = '<div class="booking-tabs">' + tabs + '</div><div id="booking-panel"></div>';
+    renderBookingPanel();
+  }
+
+  function renderBookingPanel() {
+    var panel = document.getElementById('booking-panel');
+    if (!panel) return;
+    var svc = bState.activeService;
+    var isModifying = !!(bState.modifyingBooking && bState.modifyingBooking.serviceType === svc);
+    if (isModifying) { panel.innerHTML = renderSlotPicker(svc); return; }
+    var myBooking = null;
+    bState.myBookings.forEach(function(b) { if (b.serviceType === svc) myBooking = b; });
+    panel.innerHTML = myBooking ? renderConfirmed(myBooking) : renderSlotPicker(svc);
+  }
+
+  function renderConfirmed(booking) {
+    var svc = esc(booking.serviceType);
+    var isPending = bState.pendingCancel === booking.serviceType;
+    var h = '<div class="booking-confirmed">';
+    h += '<div class="booking-status-badge"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 預約確認</div>';
+    h += '<div class="booking-detail-grid">';
+    h += '<div class="booking-detail-row"><span class="booking-detail-label">服務項目</span><span class="booking-detail-value">' + svc + '</span></div>';
+    h += '<div class="booking-detail-row"><span class="booking-detail-label">預約日期</span><span class="booking-detail-value">' + fmtBookingDate(booking.date) + '</span></div>';
+    h += '<div class="booking-detail-row"><span class="booking-detail-label">預約時間</span><span class="booking-detail-value">' + esc(booking.time) + '</span></div>';
+    h += '<div class="booking-detail-row"><span class="booking-detail-label">戶別</span><span class="booking-detail-value">' + esc(state.user.unit) + '</span></div>';
+    if (booking.method) {
+      h += '<div class="booking-detail-row"><span class="booking-detail-label">方式</span><span class="booking-detail-value">' + esc(booking.method) + '</span></div>';
+    }
+    h += '</div>';
+    if (booking.serviceType.indexOf('客變') >= 0) {
+      h += '<div class="booking-notice">';
+      h += '<div class="booking-notice-title">【重要】</div>';
+      h += '<p>客變地點：新濠一滙工務所一樓</p>';
+      h += '<p>客變每組時段 1.5小時（依預約時間起算），請您 <strong>準時抵達</strong>完成報到。若遲到，將不順延、不補時，遲到時間將直接計入您的客變時段，敬請準時到場。</p>';
+      h += '<p><strong>客變規則：</strong><br>當日客變與選材選色完成後，將會在圖面或表格上簽認，簽認後將視同客變完成，若有需要再次變動，視為二次客變，將收取手續費3萬元，依次類推。</p>';
+      h += '</div>';
+    }
+    if (isPending) {
+      h += '<div class="cancel-confirm-box"><p>確定要取消「' + svc + '」的預約嗎？</p><div class="btn-row">';
+      h += '<button class="btn-danger" onclick="App.doCancelBooking(\'' + svc + '\')">確定取消</button>';
+      h += '<button class="btn-ghost" onclick="App.clearCancel()">返回</button></div></div>';
+    } else {
+      h += '<div class="booking-actions">';
+      h += '<button class="btn-outline" onclick="App.modifyBooking(\'' + svc + '\')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 修改預約</button>';
+      h += '<button class="btn-danger-outline" onclick="App.showCancelConfirm(\'' + svc + '\')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> 取消預約</button>';
+      h += '</div>';
+    }
+    h += '</div>';
+    return h;
+  }
+
+  function checkBookingWindow(svc) {
+    if (!bState.bookingSettings || !bState.bookingSettings.length) return { open: true };
+    var setting = null;
+    bState.bookingSettings.forEach(function(s) { if (s.serviceType === svc) setting = s; });
+    if (!setting || (!setting.openTime && !setting.closeTime)) return { open: true };
+    var now = new Date();
+    var twNow = new Date(now.getTime() + 8 * 3600000);
+    var pad = function(n) { return String(n).padStart(2, '0'); };
+    var twStr = twNow.getUTCFullYear() + '/' + pad(twNow.getUTCMonth()+1) + '/' + pad(twNow.getUTCDate()) + ' ' + pad(twNow.getUTCHours()) + ':' + pad(twNow.getUTCMinutes());
+    if (setting.openTime && twStr < setting.openTime) return { open: false, reason: 'before', time: setting.openTime };
+    if (setting.closeTime && twStr > setting.closeTime) return { open: false, reason: 'after', time: setting.closeTime };
+    return { open: true };
+  }
+
+  function fmtWindowTime(str) {
+    if (!str) return str;
+    var m = str.match(/(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})/);
+    if (!m) return str;
+    return (parseInt(m[1]) - 1911) + '年' + m[2] + '月' + m[3] + '日 ' + m[4] + ':' + m[5];
+  }
+
+  function renderSlotPicker(svc) {
+    var win = checkBookingWindow(svc);
+    if (!win.open) {
+      var h2 = '<div class="booking-empty booking-locked">';
+      h2 += '<div class="lock-icon">🔒</div>';
+      if (win.reason === 'before') {
+        h2 += '<div class="lock-title">預約尚未開放</div>';
+        h2 += '<div class="lock-time">開放時間：' + fmtWindowTime(win.time) + '</div>';
+        h2 += '<div class="lock-note">屆時請再回來預約，感謝您的耐心等候。</div>';
+      } else {
+        h2 += '<div class="lock-title">預約已截止</div>';
+        h2 += '<div class="lock-note">此服務的預約受理期間已結束，感謝您的參與。</div>';
+      }
+      h2 += '</div>';
+      return h2;
+    }
+    var isModifying = !!(bState.modifyingBooking && bState.modifyingBooking.serviceType === svc);
+    var slots = bState.slots.filter(function(s) { return s.serviceType === svc; });
+    if (!slots.length) return '<div class="booking-empty"><p>此服務項目目前尚無開放時段，請稍後查詢。</p></div>';
+    var months = {}; var monthOrder = [];
+    slots.forEach(function(s) {
+      var p = s.date.split('/'); var mk = p[0] + '/' + p[1];
+      if (!months[mk]) { months[mk] = {}; monthOrder.push(mk); }
+      if (!months[mk][s.date]) months[mk][s.date] = [];
+      months[mk][s.date].push(s);
+    });
+    monthOrder.sort();
+    monthOrder.forEach(function(mk) {
+      Object.keys(months[mk]).forEach(function(dk) {
+        months[mk][dk].sort(function(a, b) {
+          function m(t) { var x = String(t).split(':'); return parseInt(x[0]||0,10)*60+parseInt(x[1]||0,10); }
+          return m(a.time) - m(b.time);
+        });
+      });
+    });
+    if (!bState.calMonth || monthOrder.indexOf(bState.calMonth) < 0) bState.calMonth = monthOrder[0];
+    var mk = bState.calMonth;
+    var idx = monthOrder.indexOf(mk);
+    var prevMk = idx > 0 ? monthOrder[idx-1] : null;
+    var nextMk = idx < monthOrder.length-1 ? monthOrder[idx+1] : null;
+    var hasSel = !!(bState.selectedSlot && bState.selectedSlot.serviceType === svc);
+    var today = new Date(); today.setHours(0,0,0,0);
+    var p = mk.split('/');
+    var year = parseInt(p[0],10); var month = parseInt(p[1],10);
+    var firstDow = new Date(year, month-1, 1).getDay();
+    var lastDate = new Date(year, month, 0).getDate();
+
+    var h = '';
+    if (isModifying) {
+      var ob = bState.modifyingBooking;
+      h += '<div class="modify-banner"><div class="modify-banner-info">修改預約中｜原預約：' + esc(ob.date) + '　' + esc(ob.time) + '</div>';
+      h += '<button class="btn-ghost modify-banner-cancel" onclick="App.cancelModify()">放棄修改</button></div>';
+    }
+    h += '<div class="cal-nav">';
+    h += '<button class="cal-nav-btn"' + (prevMk ? ' onclick="App.switchCalMonth(\'' + prevMk + '\')"' : ' disabled') + '>&#8249;</button>';
+    h += '<span class="cal-nav-title">' + year + ' 年 ' + month + ' 月</span>';
+    h += '<button class="cal-nav-btn"' + (nextMk ? ' onclick="App.switchCalMonth(\'' + nextMk + '\')"' : ' disabled') + '>&#8250;</button>';
+    h += '</div><div class="cal-month"><div class="cal-grid">';
+    var dows = ['日','一','二','三','四','五','六'];
+    for (var di = 0; di < 7; di++) h += '<div class="cal-dow">' + dows[di] + '</div>';
+    for (var i = 0; i < firstDow; i++) h += '<div class="cal-cell cal-empty"></div>';
+    for (var d = 1; d <= lastDate; d++) {
+      var dd = d < 10 ? '0'+d : ''+d;
+      var dateKey = p[0]+'/'+p[1]+'/'+dd;
+      var daySlots = months[mk][dateKey] || [];
+      var cellDate = new Date(year, month-1, d); cellDate.setHours(0,0,0,0);
+      var isToday = (cellDate.getTime() === today.getTime());
+      var isSel = (bState.selectedDate === dateKey);
+      var cellCls = 'cal-cell' + (isToday ? ' cal-today' : '') + (isSel ? ' cal-sel' : '');
+      h += daySlots.length ? '<div class="' + cellCls + '" onclick="App.selectDate(\'' + dateKey + '\')">' : '<div class="' + cellCls + ' cal-empty">';
+      h += '<div class="cal-day-num">' + d + '</div>';
+      if (daySlots.length) {
+        h += '<div class="cal-dots">';
+        daySlots.forEach(function(s) {
+          var remain = s.capacity - s.booked;
+          var dc = !s.available ? 'full' : remain <= 2 ? 'low' : 'avail';
+          h += '<span class="cal-dot ' + dc + '"></span>';
+        });
+        h += '</div>';
+      }
+      h += '</div>';
+    }
+    h += '</div></div>';
+
+    if (bState.selectedDate && months[mk] && months[mk][bState.selectedDate]) {
+      var panelSlots = months[mk][bState.selectedDate];
+      h += '<div class="cal-date-panel"><div class="cal-date-panel-title"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ' + fmtBookingDate(bState.selectedDate) + '　可預約時段</div>';
+      h += '<div class="cal-slot-list">';
+      panelSlots.forEach(function(s) {
+        var isFull = !s.available;
+        var remain = s.capacity - s.booked;
+        var isSlotSel = hasSel && bState.selectedSlot.date === s.date && bState.selectedSlot.time === s.time;
+        var bc = isSlotSel ? 'sel' : isFull ? 'full' : remain <= 2 ? 'low' : 'avail';
+        var remainTxt = isFull ? '額滿' : '剩餘 ' + remain + ' 位';
+        if (isFull) { h += '<div class="cal-slot-btn full">'; }
+        else { h += '<div class="cal-slot-btn ' + bc + '" onclick="App.selectSlot(\'' + esc(svc) + '\',\'' + esc(s.date) + '\',\'' + esc(s.time) + '\')">'; }
+        h += '<span class="cal-slot-time">' + esc(s.time) + '</span><span class="cal-slot-remain">' + remainTxt + '</span></div>';
+      });
+      h += '</div></div>';
+    } else if (bState.selectedDate) {
+      h += '<div class="cal-date-panel"><div class="cal-no-slot">此日期無可預約時段</div></div>';
+    } else {
+      h += '<p style="text-align:center;color:var(--text-muted);font-size:.9rem;margin-top:.75rem;">↑ 請點選日曆中有圓點的日期查看時段</p>';
+    }
+
+    var methodOptions = svc.indexOf('驗屋') >= 0
+      ? [['自行驗屋（營造廠陪同）','自行驗屋','（營造廠陪同）'],['驗屋公司（代驗自行處理）','驗屋公司','（代驗自行處理）']]
+      : svc.indexOf('客變') >= 0
+      ? [['僅選材選色（不客變）','僅選材選色','（不客變）'],['自行客變','自行客變',''],['設計師陪同','設計師陪同','']]
+      : [];
+    var needsMethod = methodOptions.length > 0;
+    if (needsMethod && hasSel) {
+      var m = bState.method;
+      h += '<div class="inspection-wrap">';
+      h += '<div class="inspection-title">請選擇方式</div>';
+      h += '<div class="inspection-btns">';
+      methodOptions.forEach(function(opt) {
+        var val = opt[0]; var main = opt[1]; var sub = opt[2];
+        h += '<button class="inspection-btn' + (m === val ? ' active' : '') + '" onclick="App.selectMethod(\'' + esc(val) + '\')">';
+        h += '<span class="ib-main">' + esc(main) + '</span>';
+        if (sub) h += '<span class="ib-sub">' + esc(sub) + '</span>';
+        h += '</button>';
+      });
+      h += '</div></div>';
+    }
+    var selTxt = hasSel ? '已選：' + bState.selectedSlot.date + '　' + bState.selectedSlot.time : '請選擇時段';
+    var confirmLabel = isModifying ? '確認修改' : '確認預約';
+    var canConfirm = hasSel && (!needsMethod || bState.method);
+    h += '<div class="booking-confirm-bar"><span class="selected-slot-text' + (hasSel ? ' picked' : '') + '">' + selTxt + '</span>';
+    h += '<button class="btn-primary"' + (canConfirm ? '' : ' disabled style="opacity:.45;cursor:default"') + ' onclick="App.confirmBooking()">' + confirmLabel + '</button></div>';
+    return h;
+  }
+
+  function switchCalMonth(mk) { bState.calMonth = mk; bState.selectedDate = null; renderBookingPanel(); }
+  function selectDate(date) { bState.selectedDate = (bState.selectedDate === date) ? null : date; renderBookingPanel(); }
+  function switchService(svc) { bState.activeService = svc; bState.selectedSlot = null; bState.pendingCancel = null; bState.calMonth = null; bState.selectedDate = null; bState.modifyingBooking = null; bState.method = null; renderBooking(getServices()); }
+  function selectSlot(svc, date, time) { bState.selectedSlot = { serviceType: svc, date: date, time: time }; bState.method = null; renderBookingPanel(); }
+  function selectMethod(method) { bState.method = method; renderBookingPanel(); }
+
+  function confirmBooking() {
+    if (!bState.selectedSlot || bState.selectedSlot.serviceType !== bState.activeService) { showToast('請先選擇時段', 'error'); return; }
+    var s = bState.selectedSlot;
+    var needsMethod = s.serviceType.indexOf('驗屋') >= 0 || s.serviceType.indexOf('客變') >= 0;
+    if (needsMethod && !bState.method) { showToast('請選擇方式', 'error'); return; }
+    var oldBooking = bState.modifyingBooking;
+    var isModifying = !!(oldBooking && oldBooking.serviceType === s.serviceType);
+    showLoading(true);
+    callServer('serverCreateBooking', state.user.projectCode, state.user.idCard, state.user.unit, s.serviceType, s.date, s.time, state.user.name, isModifying ? oldBooking.date : null, isModifying ? oldBooking.time : null, bState.method || '')
+      .then(function(res) {
+        if (!res.success) { showToast(res.message || '預約失敗', 'error'); return; }
+        _bCache = { data: null, ts: 0 };
+        if (isModifying) {
+          return callServer('serverCancelBooking', state.user.projectCode, state.user.idCard, state.user.unit, oldBooking.serviceType, oldBooking.date, oldBooking.time)
+            .then(function() { showToast('預約已修改！', 'success'); bState.selectedSlot = null; bState.modifyingBooking = null; loadBooking(); });
+        }
+        showToast('預約成功！', 'success'); bState.selectedSlot = null; loadBooking();
+      })
+      .catch(function() { showToast('操作失敗，請稍後再試', 'error'); })
+      .then(function() { showLoading(false); });
+  }
+
+  function cancelModify() { bState.modifyingBooking = null; bState.selectedSlot = null; renderBookingPanel(); }
+  function showCancelConfirm(svc) { bState.pendingCancel = svc; renderBookingPanel(); }
+  function clearCancel() { bState.pendingCancel = null; renderBookingPanel(); }
+
+  function doCancelBooking(svc) {
+    showLoading(true);
+    callServer('serverCancelBooking', state.user.projectCode, state.user.idCard, state.user.unit, svc)
+      .then(function(res) {
+        if (res.success) { _bCache = { data: null, ts: 0 }; showToast('預約已取消', 'success'); loadBooking(); }
+        else { showToast(res.message || '取消失敗', 'error'); }
+      })
+      .catch(function() { showToast('取消失敗，請稍後再試', 'error'); })
+      .then(function() { showLoading(false); });
+  }
+
+  function modifyBooking(svc) {
+    var booking = null;
+    bState.myBookings.forEach(function(b) { if (b.serviceType === svc) booking = b; });
+    if (!booking) { showToast('找不到預約紀錄', 'error'); return; }
+    bState.modifyingBooking = { serviceType: booking.serviceType, date: booking.date, time: booking.time };
+    bState.selectedSlot = null; bState.calMonth = null; bState.selectedDate = null;
+    renderBookingPanel();
+  }
+
+  function fmtBookingDate(dateStr) {
+    if (!dateStr) return '';
+    var parts = dateStr.split('/');
+    if (parts.length !== 3) return dateStr;
+    var d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    var days = ['週日','週一','週二','週三','週四','週五','週六'];
+    return parts[0] + '年' + parseInt(parts[1]) + '月' + parseInt(parts[2]) + '日（' + days[d.getDay()] + '）';
+  }
+
+  function loadProjectDocs() {
+    var el = document.getElementById('docs-list');
+    el.innerHTML = '<p class="text-muted text-center">載入中…</p>';
+    callServer('serverGetProjectFiles', state.user.projectCode)
+      .then(function(files) {
+        if (!files.length) { el.innerHTML = '<div class="docs-empty"><p>目前尚無相關檔案，請聯絡客服</p></div>'; return; }
+        el.innerHTML = ''; files.forEach(function(f) { el.appendChild(buildFileItem(f)); });
+      })
+      .catch(function() { el.innerHTML = '<p class="text-muted text-center">載入失敗，請稍後再試</p>'; });
+  }
+
+  function loadDownloads() {
+    var el = document.getElementById('download-list');
+    el.innerHTML = '<p class="text-muted text-center">載入中…</p>';
+    callServer('serverGetFiles', state.user.folderId)
+      .then(function(files) {
+        if (!files.length) { el.innerHTML = '<p class="text-muted text-center">目前尚無可下載的圖資，請聯絡客服</p>'; return; }
+        el.innerHTML = ''; files.forEach(function(f) { el.appendChild(buildFileItem(f)); });
+      })
+      .catch(function() { el.innerHTML = '<p class="text-muted text-center">載入失敗，請稍後再試</p>'; });
+  }
+
+  function buildFileItem(f) {
+    var ext = (f.ext || '').toLowerCase();
+    var cls = ext === 'pdf' ? 'pdf' : (ext === 'dwg' || ext === 'dxf') ? 'cad' : 'other';
+    var div = document.createElement('div');
+    div.className = 'file-item';
+    div.innerHTML =
+      '<div class="file-icon ' + cls + '">' + (ext.toUpperCase() || 'FILE') + '</div>' +
+      '<span class="file-name">' + esc(f.name) + '</span>' +
+      (f.size ? '<span class="file-size">' + fmtSize(f.size) + '</span>' : '') +
+      '<a href="' + f.downloadUrl + '" target="_blank" rel="noopener" class="btn-download"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>下載</a>';
+    return div;
+  }
+
+  var onDragOver  = function(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('drag-over'); };
+  var onDragLeave = function() { document.getElementById('drop-zone').classList.remove('drag-over'); };
+  var onDrop = function(e) { e.preventDefault(); onDragLeave(); handleFiles(Array.prototype.slice.call(e.dataTransfer.files)); };
+  var onFileSelect = function(e) { handleFiles(Array.prototype.slice.call(e.target.files)); e.target.value = ''; };
+
+  function handleFiles(files) {
+    files.forEach(function(f) {
+      if (f.size > MAX_SIZE) { showToast(f.name + ' 超過 20 MB，略過', 'error'); return; }
+      uploadFile(f);
+    });
+  }
+
+  function uploadFile(file) {
+    var queue = document.getElementById('upload-queue');
+    var item = document.createElement('div');
+    item.className = 'upload-item';
+    item.innerHTML = '<div class="upload-item-top"><span class="upload-item-name">' + esc(file.name) + '</span><span class="upload-item-status status-uploading">上傳中</span></div><div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>';
+    queue.prepend(item);
+    var statusEl = item.querySelector('.upload-item-status');
+    var progressEl = item.querySelector('.progress-fill');
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      progressEl.style.width = '40%';
+      var base64 = ev.target.result.split(',')[1];
+      progressEl.style.width = '70%';
+      callServer('serverUploadFile', state.user.idCard, state.user.name, state.user.projectCode, state.user.unit, state.user.folderId, file.name, file.type || 'application/octet-stream', base64)
+        .then(function(res) {
+          progressEl.style.width = '100%';
+          if (res.success) { statusEl.textContent = '完成'; statusEl.className = 'upload-item-status status-done'; showToast(file.name + ' 上傳成功', 'success'); setTimeout(function() { item.remove(); loadUploadHistory(); }, 3000); }
+          else { throw new Error('failed'); }
+        })
+        .catch(function() { statusEl.textContent = '失敗'; statusEl.className = 'upload-item-status status-error'; showToast(file.name + ' 上傳失敗', 'error'); });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function loadUploadHistory() {
+    var el = document.getElementById('upload-history');
+    el.innerHTML = '<p class="text-muted text-center">載入中…</p>';
+    callServer('serverGetUploadHistory', state.user.idCard, state.user.projectCode)
+      .then(function(records) {
+        if (!records.length) { el.innerHTML = '<p class="text-muted text-center">尚無上傳紀錄</p>'; return; }
+        el.innerHTML = '';
+        records.slice(0, 20).forEach(function(r) {
+          var div = document.createElement('div');
+          div.className = 'history-item';
+          div.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="history-item-name">' + esc(r.fileName) + '</span><span class="history-date">' + r.date + '</span>';
+          el.appendChild(div);
+        });
+      })
+      .catch(function() { el.innerHTML = '<p class="text-muted text-center">無法載入紀錄</p>'; });
+  }
+
+  /* ── 工程進度 ── */
+  var _photoCache = {};
+
+  function loadProgress() {
+    var el = document.getElementById('progress-list');
+    el.innerHTML = '<p class="text-muted text-center" style="padding:2.5rem">載入中…</p>';
+    _photoCache = {};
+    callServer('serverGetProgress', state.user.projectCode)
+      .then(function(phases) {
+        if (!phases || !phases.length) {
+          el.innerHTML = '<p class="text-muted text-center" style="padding:2rem">目前尚無工程進度資料</p>';
+          return;
+        }
+        var total    = phases.length;
+        var done     = phases.filter(function(p){ return p.status === '已完成'; }).length;
+        var pct      = total ? Math.round(done / total * 100) : 0;
+        var goingIdx = -1;
+        phases.forEach(function(p, i){ if (p.status === '進行中' && goingIdx < 0) goingIdx = i; });
+        var gp = goingIdx >= 0 ? phases[goingIdx] : (done === total ? phases[total - 1] : null);
+
+        var today = new Date();
+        var todayStr = today.getFullYear() + '/'
+          + (today.getMonth() + 1 < 10 ? '0' : '') + (today.getMonth() + 1) + '/'
+          + (today.getDate() < 10 ? '0' : '') + today.getDate();
+
+        /* 統計卡 */
+        var h = '<div class="prog-stats-row">';
+        h += '<div class="prog-stat-card"><div class="prog-stat-icon">📅</div><div class="prog-stat-label">更新日期</div><div class="prog-stat-value">' + todayStr + '</div></div>';
+        h += '<div class="prog-stat-card"><div class="prog-stat-icon">📊</div><div class="prog-stat-label">整體進度</div><div class="prog-stat-value green">' + pct + '%</div></div>';
+        h += '<div class="prog-stat-card"><div class="prog-stat-icon">🏗️</div><div class="prog-stat-label">總期數</div><div class="prog-stat-value">' + total + '期</div></div>';
+        h += '<div class="prog-stat-card"><div class="prog-stat-icon">🔨</div><div class="prog-stat-label">目前施工</div><div class="prog-stat-value">' + esc(gp ? gp.phase : '已完工') + '</div></div>';
+        h += '</div>';
+
+        /* 目前進行橫幅 */
+        h += '<div class="prog-current-banner">';
+        h += '<span class="prog-current-label">現在進行至</span>';
+        h += '<span class="prog-current-phase">' + esc(gp ? gp.phase : '已完工') + '</span>';
+        h += '</div>';
+
+        /* 最新施工照片（最後一個已完成且有照片資料夾的期別） */
+        var latestDone = null;
+        for (var li = phases.length - 1; li >= 0; li--) {
+          if (phases[li].status === '已完成' && phases[li].folderId) { latestDone = phases[li]; break; }
+        }
+        if (latestDone) {
+          h += '<div class="latest-photo-wrap">';
+          h += '<div class="latest-photo-title">最新施工照片・' + esc(latestDone.phase) + '</div>';
+          h += '<div id="latest-carousel">載入中…</div>';
+          h += '</div>';
+        }
+
+        /* 整體進度條 */
+        h += '<div class="tl-pct-row">';
+        h += '<div class="tl-pct-track"><div class="tl-pct-fill" id="tl-pct-fill" style="width:0%"></div></div>';
+        h += '<span class="tl-pct-label">' + pct + '%</span>';
+        h += '</div>';
+        /* 圖例 */
+        h += '<div class="tl-legend">';
+        h += '<div class="tl-legend-item"><div class="tl-legend-dot" style="background:#1565c0"></div>已完成</div>';
+        h += '<div class="tl-legend-item"><div class="tl-legend-dot" style="background:#f9a825"></div>進行中</div>';
+        h += '<div class="tl-legend-item"><div class="tl-legend-dot" style="background:#bdbdbd"></div>未開始</div>';
+        h += '</div>';
+        /* 蛇形時間軸 */
+        var COLS = 5;
+        var snRows = [];
+        for (var sri = 0; sri < phases.length; sri += COLS) {
+          snRows.push(phases.slice(sri, sri + COLS));
+        }
+        h += '<div class="snake-wrap">';
+        snRows.forEach(function(row, ri) {
+          var isRtl = ri % 2 === 1;
+          var n = row.length;
+          var sp = (100 / (n * 2)).toFixed(2) + '%';
+          var vis = isRtl ? row.slice().reverse() : row;
+          var gp2 = [];
+          for (var gi = 0; gi < vis.length - 1; gi++) {
+            var a = vis[gi], b = vis[gi + 1];
+            var lc = (a.status === '已完成' && (b.status === '已完成' || b.status === '進行中')) ? '#1565c0' : '#e0e0e0';
+            var p1 = Math.round(gi / (vis.length - 1) * 100);
+            var p2 = Math.round((gi + 1) / (vis.length - 1) * 100);
+            gp2.push(lc + ' ' + p1 + '%', lc + ' ' + p2 + '%');
+          }
+          var lineStyle = vis.length > 1 ? 'linear-gradient(90deg,' + gp2.join(',') + ')' : '#e0e0e0';
+          h += '<div class="snake-track ' + (isRtl ? 'rtl' : 'ltr') + '">';
+          h += '<div class="snake-line" style="background:' + lineStyle + ';left:' + sp + ';right:' + sp + '"></div>';
+          row.forEach(function(p, ci) {
+            var sc = p.status === '已完成' ? 'sn-done' : p.status === '進行中' ? 'sn-ongoing' : 'sn-pending';
+            var isPhase0 = !p.phase || p.phase === '第0期' || p.phase === '第零期';
+            var dotNum = isPhase0 ? '' : (ri * COLS + ci + 1);
+            h += '<div class="sn-slot ' + sc + '"><div class="snake-dot">' + dotNum + '</div></div>';
+          });
+          h += '</div>';
+          h += '<div class="snake-lbls ' + (isRtl ? 'rtl' : 'ltr') + '">';
+          row.forEach(function(p, ci) {
+            var sc = p.status === '已完成' ? 'sn-done' : p.status === '進行中' ? 'sn-ongoing' : 'sn-pending';
+            var isPhase0 = !p.phase || p.phase === '第0期' || p.phase === '第零期';
+            h += '<div class="sn-lbl ' + sc + '">' + (isPhase0 ? '' : '<div class="snake-nm">' + esc(p.item) + '</div>') + '</div>';
+          });
+          h += '</div>';
+          if (ri < snRows.length - 1) {
+            var tc = row[row.length - 1];
+            var tn = snRows[ri + 1][0];
+            var tCls = (tc.status === '已完成' && tn.status === '已完成') ? 'snt-done'
+                     : (tc.status === '進行中' || tn.status === '進行中') ? 'snt-going' : '';
+            h += '<div class="snake-turn ' + (isRtl ? 'left' : 'right') + ' ' + tCls + '"></div>';
+          }
+        });
+        h += '</div>';
+
+        /* 詳細進度表 */
+        h += '<div class="progress-table-title">詳細進度</div>';
+        h += '<table class="progress-table"><thead><tr><th>期別</th><th>工程項目</th><th>預計完成</th><th>狀態</th><th>照片</th></tr></thead><tbody>';
+        phases.forEach(function(p, i) {
+          var sc = p.status === '已完成' ? 'prog-done' : p.status === '進行中' ? 'prog-ongoing' : 'prog-pending';
+          h += '<tr>';
+          h += '<td>' + esc(p.phase) + '</td>';
+          h += '<td>' + esc(p.item) + '</td>';
+          h += '<td>' + esc(p.dueDate) + '</td>';
+          h += '<td><span class="prog-status ' + sc + '">' + esc(p.status) + '</span></td>';
+          h += '<td>' + (p.folderId ? '<button class="btn-photo" id="pbtn-' + i + '" onclick="App.togglePhotos(' + i + ',\'' + esc(p.folderId) + '\')">📷</button>' : '—') + '</td>';
+          h += '</tr>';
+          h += '<tr class="photo-row hidden" id="prow-' + i + '"><td colspan="5" style="padding:0;background:#fafafa"><div id="pcarousel-' + i + '"></div></td></tr>';
+        });
+        h += '</tbody></table>';
+
+        el.innerHTML = h;
+        setTimeout(function() {
+          var bar = document.getElementById('tl-pct-fill');
+          if (bar) bar.style.width = pct + '%';
+          /* U形轉角定位 */
+          var wrap = el.querySelector('.snake-wrap');
+          if (!wrap) return;
+          var wrapRect = wrap.getBoundingClientRect();
+          var tracks = wrap.querySelectorAll('.snake-track');
+          var turnEls = wrap.querySelectorAll('.snake-turn');
+          turnEls.forEach(function(turn, ti) {
+            if (ti >= tracks.length - 1) return;
+            var ss1 = tracks[ti].querySelectorAll('.sn-slot');
+            var ss2 = tracks[ti + 1].querySelectorAll('.sn-slot');
+            if (!ss1.length || !ss2.length) return;
+            var d1 = ss1[ss1.length - 1].querySelector('.snake-dot');
+            var d2 = ss2[0].querySelector('.snake-dot');
+            var r1 = d1.getBoundingClientRect();
+            var r2 = d2.getBoundingClientRect();
+            var y1 = r1.top + r1.height / 2 - wrapRect.top;
+            var y2 = r2.top + r2.height / 2 - wrapRect.top;
+            var tw = wrap.offsetWidth / (COLS * 2);
+            turn.style.top = y1 + 'px';
+            turn.style.height = (y2 - y1) + 'px';
+            turn.style.width = tw + 'px';
+            if (turn.classList.contains('right')) { turn.style.right = '0'; turn.style.left = 'auto'; }
+            else { turn.style.left = '0'; turn.style.right = 'auto'; }
+          });
+        }, 150);
+
+        /* 自動載入最新照片 */
+        if (latestDone) {
+          callServer('serverGetProgressPhotos', latestDone.folderId)
+            .then(function(photos) {
+              _photoCache[latestDone.folderId] = photos;
+              var c = document.getElementById('latest-carousel');
+              if (c) renderCarousel(c, photos, true); /* autoplay */
+            })
+            .catch(function() {
+              var c = document.getElementById('latest-carousel');
+              if (c) c.innerHTML = '<p class="text-muted text-center" style="padding:.75rem">照片載入失敗</p>';
+            });
+        }
+      })
+      .catch(function() {
+        el.innerHTML = '<p class="text-muted text-center" style="padding:2rem">載入失敗，請稍後再試</p>';
+      });
+  }
+
+  function togglePhotos(idx, folderId) {
+    var row = document.getElementById('prow-' + idx);
+    var btn = document.getElementById('pbtn-' + idx);
+    if (!row) return;
+    var isHidden = row.classList.contains('hidden');
+    if (!isHidden) { row.classList.add('hidden'); btn.classList.remove('open'); btn.textContent = '📷'; return; }
+    row.classList.remove('hidden');
+    btn.classList.add('open'); btn.textContent = '🔼';
+    var carousel = document.getElementById('pcarousel-' + idx);
+    if (_photoCache[folderId]) { renderCarousel(carousel, _photoCache[folderId]); return; }
+    carousel.innerHTML = '<p class="text-muted text-center" style="padding:1rem">載入中…</p>';
+    callServer('serverGetProgressPhotos', folderId)
+      .then(function(photos) { _photoCache[folderId] = photos; renderCarousel(carousel, photos); })
+      .catch(function() { carousel.innerHTML = '<p class="text-muted text-center" style="padding:1rem">照片載入失敗</p>'; });
+  }
+
+  function renderCarousel(el, photos, autoplay) {
+    if (!photos || !photos.length) { el.innerHTML = '<p class="text-muted text-center" style="padding:1rem">此期尚無照片</p>'; return; }
+    var h = '<div class="progress-carousel">';
+    photos.forEach(function(p) {
+      h += '<div class="progress-photo" onclick="App.openLightbox(\'' + p.url + '\')">';
+      h += '<img src="' + p.url + '" alt="' + esc(p.name) + '" loading="lazy"/>';
+      if (p.name) h += '<div class="photo-name">' + esc(p.name) + '</div>';
+      h += '</div>';
+    });
+    h += '</div>';
+    el.innerHTML = h;
+    if (autoplay && photos.length > 1) {
+      var car = el.querySelector('.progress-carousel');
+      if (car) _startAutoPlay(car, photos.length);
+    }
+  }
+
+  function _startAutoPlay(car, count) {
+    var cur = 0;
+    var timer = null;
+    function goTo(i) {
+      var items = car.querySelectorAll('.progress-photo');
+      if (!items.length || !document.contains(car)) { stop(); return; }
+      cur = (i + count) % count;
+      var itemW = items[0].offsetWidth;
+      var gapPx = parseFloat(getComputedStyle(car).columnGap) || 12;
+      car.scrollTo({ left: cur * (itemW + gapPx), behavior: 'smooth' });
+    }
+    function start() {
+      if (!timer) timer = setInterval(function() { goTo(cur + 1); }, 1500);
+    }
+    function stop() { clearInterval(timer); timer = null; }
+    start();
+    car.addEventListener('mouseenter', stop);
+    car.addEventListener('mouseleave', start);
+    car.addEventListener('touchstart', stop, { passive: true });
+    car.addEventListener('touchend', function() { setTimeout(start, 4000); }, { passive: true });
+  }
+
+  function openLightbox(url) {
+    document.getElementById('lightbox-img').src = url;
+    document.getElementById('photo-lightbox').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    document.getElementById('photo-lightbox').classList.add('hidden');
+    document.getElementById('lightbox-img').src = '';
+    document.body.style.overflow = '';
+  }
+
+  function showLoading(v) { document.getElementById('loading-overlay').classList.toggle('hidden', !v); }
+  var _t;
+  function showToast(msg, type) {
+    var el = document.getElementById('toast');
+    el.textContent = msg; el.className = 'toast ' + (type || ''); el.classList.remove('hidden');
+    clearTimeout(_t); _t = setTimeout(function() { el.classList.add('hidden'); }, 3500);
+  }
+  function toRocQuarter(dateStr) {
+    if (!dateStr) return '';
+    var parts = dateStr.split('/');
+    if (parts.length < 2) return '';
+    var rocYear = parseInt(parts[0]) - 1911;
+    var q = Math.ceil(parseInt(parts[1]) / 3);
+    var qName = ['第一季','第二季','第三季','第四季'][q - 1] || '';
+    return rocYear + '年' + qName;
+  }
+
+  var fmtSize = function(b) { return b < 1024 ? b+' B' : b < 1048576 ? (b/1024).toFixed(1)+' KB' : (b/1048576).toFixed(1)+' MB'; };
+  var esc = function(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); };
+  function validateIdCard(id) { return /^[A-Z][0-9]{9}$/.test(id); }
+
+  return { init, login, logout, goTo, backToUnits, onDragOver, onDragLeave, onDrop, onFileSelect,
+           switchService, selectSlot, selectMethod, confirmBooking, showCancelConfirm, clearCancel, doCancelBooking,
+           modifyBooking, cancelModify, switchCalMonth, selectDate,
+           togglePhotos, openLightbox, closeLightbox };
+})();
+
+document.addEventListener('DOMContentLoaded', App.init);
+</script>
 </body>
 </html>
